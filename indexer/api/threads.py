@@ -3,10 +3,8 @@ import time
 
 import fastapi
 
-from indexer import (
-    cache,
-    f95zone,
-)
+from modules import cache
+import f95zone
 
 FAST_MAX_IDS = 10
 VALID_THREAD_IDS = range(1, 1_000_000)  # Top ID was ~232k at time of writing

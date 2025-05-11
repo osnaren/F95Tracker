@@ -2,18 +2,14 @@
 import contextlib
 import logging
 import os
-import pathlib
-import re
 
 import fastapi
 import uvicorn
 
-from indexer import (
-    cache,
-    f95zone,
-    threads,
-    watcher,
-)
+from api import threads
+from f95zone import watcher
+from modules import cache
+import f95zone
 
 logger = logging.getLogger()
 
@@ -39,14 +35,14 @@ def main() -> None:
     logger.addHandler(log_handler)
 
     uvicorn.run(
-        "indexer-main:app",
+        "main:app",
         host=os.environ.get("BIND_HOST", "127.0.0.1"),
         port=int(os.environ.get("BIND_HOST", 8069)),
         workers=1,
         log_config=None,
         log_level=logging.INFO,
         access_log=False,
-        env_file="indexer.env",
+        env_file=".env",
     )
 
 

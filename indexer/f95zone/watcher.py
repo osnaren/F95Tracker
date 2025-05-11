@@ -6,12 +6,10 @@ import json
 import logging
 import time
 
-from common import parser
+from f95zone import parser
 from external import error
-from indexer import (
-    cache,
-    f95zone,
-)
+from modules import cache
+import f95zone
 
 WATCH_UPDATES_INTERVAL = dt.timedelta(minutes=5).total_seconds()
 WATCH_UPDATES_CATEGORIES = f95zone.LATEST_CATEGORIES

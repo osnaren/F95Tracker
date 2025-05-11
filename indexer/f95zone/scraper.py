@@ -5,8 +5,8 @@ import logging
 import re
 import time
 
-from common import parser
-from indexer import f95zone
+from f95zone import parser
+import f95zone
 
 logger = logging.getLogger(__name__)
 

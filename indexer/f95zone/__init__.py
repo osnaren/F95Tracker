@@ -9,7 +9,7 @@ import sys
 import aiohttp
 import aiolimiter
 
-from common import meta
+from modules import meta
 
 RATELIMIT = aiolimiter.AsyncLimiter(max_rate=1, time_period=0.5)
 TIMEOUT = aiohttp.ClientTimeout(total=30, connect=30, sock_read=30, sock_connect=30)

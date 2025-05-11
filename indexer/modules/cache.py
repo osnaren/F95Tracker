@@ -6,15 +6,13 @@ import time
 
 import redis.asyncio as aredis
 
-from common import (
-    meta,
-    parser,
-)
 from external import error
-from indexer import (
-    f95zone,
+from f95zone import (
+    parser,
     scraper,
 )
+from modules import meta
+import f95zone
 
 CACHE_TTL = dt.timedelta(days=7).total_seconds()
 SHORT_TTL = dt.timedelta(days=2).total_seconds()

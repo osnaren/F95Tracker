@@ -7,12 +7,12 @@ import re
 from lxml import etree
 import bs4
 
-from common.structs import (
+from external import error
+from modules.structs import (
     Status,
     Tag,
     Type,
 )
-from external import error
 
 html = functools.partial(bs4.BeautifulSoup, features="lxml")
 _html = html
