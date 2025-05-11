@@ -73,7 +73,7 @@ async def thread(id: int) -> dict[str, str] | f95zone.IndexerError | None:
     if index_error := f95zone.check_error(versions, logger):
         return index_error
     if str(id) in versions["msg"]:
-        version = versions["msg"][str(id)]
+        version = str(versions["msg"][str(id)])
         if version == "Unknown":
             version = ""
 

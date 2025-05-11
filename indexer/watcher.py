@@ -99,7 +99,7 @@ async def watch_updates():
                             cached_data.hmget(
                                 name, "version", cache.HASHED_META, cache.LAST_CACHED
                             )
-                            version = update["version"]
+                            version = str(update["version"])
                             if version == "Unknown":
                                 version = None
                             meta = (
