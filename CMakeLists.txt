@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(F95Checker)
 
 option(F95CHECKER_VENDORED_SDL3     "Statically build and link SDL3, will not require SDL3 on target system to run"         ON)
+option(F95CHECKER_VENDORED_SQLITE3  "Statically build and link SQLite3, will not require SQLite3 on target system to run"   ON)
 option(F95CHECKER_PYTHON_VENV       "Use a dedicated python venv instead of system python, requirements are auto-installed" ON)
 
 # Directories
@@ -18,6 +19,7 @@ set(GLAD_GEN "${VENDOR_DIR}/glad")
 set(SDL3_DIR "${VENDOR_DIR}/sdl3")
 set(IMGUI_DIR "${VENDOR_DIR}/imgui")
 set(DCIMGUI_DIR "${LIB_DIR}/dcimgui")
+set(SQLITE3_DIR "${VENDOR_DIR}/sqlite3")
 set(DEARBINDINGS_DIR "${VENDOR_DIR}/dear_bindings")
 
 # Export compilation DB
@@ -90,6 +92,15 @@ target_link_libraries(F95Checker PRIVATE dcimgui)
 # Fonts (generate compressed C sources)
 add_subdirectory("${FONTS_DIR}")
 target_link_libraries(F95Checker PRIVATE fonts)
+
+# SQLite
+if(F95CHECKER_VENDORED_SQLITE3)
+    add_subdirectory("${SQLITE3_DIR}" EXCLUDE_FROM_ALL)
+    target_link_libraries(F95Checker PRIVATE sqlite3)
+else()
+    find_package(SQLite3 REQUIRED)
+    target_link_libraries(F95Checker PRIVATE SQLite::SQLite3)
+endif()
 
 # Build as (almost) static executable
 # Adding -static prevents loading OpenGL (or any other) shared libraries at runtime
