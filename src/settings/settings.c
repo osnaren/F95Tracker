@@ -27,98 +27,98 @@ const TimelineEventTypeInfo timeline_event_type[] = {
     [TimelineEventTypeGameAdded] =
         {
             .display = "Added",
-            .icon = "alert_decagram",
+            .icon = mdi_alert_decagram,
             .args_min = 0,
             .template = "Added to the library",
         },
     [TimelineEventTypeGameLaunched] =
         {
             .display = "Launched",
-            .icon = "play",
+            .icon = mdi_play,
             .args_min = 1,
             .template = "Launched {}",
         },
     [TimelineEventTypeGameFinished] =
         {
             .display = "Finished",
-            .icon = "flag_checkered",
+            .icon = mdi_flag_checkered,
             .args_min = 1,
             .template = "Finished {}",
         },
     [TimelineEventTypeGameInstalled] =
         {
             .display = "Installed",
-            .icon = "download",
+            .icon = mdi_download,
             .args_min = 1,
             .template = "Installed {}",
         },
     [TimelineEventTypeChangedName] =
         {
             .display = "Changed name",
-            .icon = "spellcheck",
+            .icon = mdi_spellcheck,
             .args_min = 2,
             .template = "Name changed from \"{}\" to \"{}\"",
         },
     [TimelineEventTypeChangedStatus] =
         {
             .display = "Changed status",
-            .icon = "lightning_bolt",
+            .icon = mdi_lightning_bolt,
             .args_min = 2,
             .template = "Status changed from \"{}\" to \"{}\"",
         },
     [TimelineEventTypeChangedVersion] =
         {
             .display = "Changed version",
-            .icon = "star",
+            .icon = mdi_star,
             .args_min = 2,
             .template = "Version changed from \"{}\" to \"{}\"",
         },
     [TimelineEventTypeChangedDeveloper] =
         {
             .display = "Changed developer",
-            .icon = "account",
+            .icon = mdi_account,
             .args_min = 2,
             .template = "Developer changed from \"{}\" to \"{}\"",
         },
     [TimelineEventTypeChangedType] =
         {
             .display = "Changed type",
-            .icon = "shape",
+            .icon = mdi_shape,
             .args_min = 2,
             .template = "Type changed from \"{}\" to \"{}\"",
         },
     [TimelineEventTypeTagsAdded] =
         {
             .display = "Tags added",
-            .icon = "tag_plus",
+            .icon = mdi_tag_plus,
             .args_min = 1,
             .template = "Tags were added: {}",
         },
     [TimelineEventTypeTagsRemoved] =
         {
             .display = "Tags removed",
-            .icon = "tag_minus",
+            .icon = mdi_tag_minus,
             .args_min = 1,
             .template = "Tags were removed: {}",
         },
     [TimelineEventTypeScoreIncreased] =
         {
             .display = "Score increased",
-            .icon = "thumb_up",
+            .icon = mdi_thumb_up,
             .args_min = 4,
             .template = "Forum score increased from {} ({}) to {} ({})",
         },
     [TimelineEventTypeScoreDecreased] =
         {
             .display = "Score decreased",
-            .icon = "thumb_down",
+            .icon = mdi_thumb_down,
             .args_min = 4,
             .template = "Forum score decreased from {} ({}) to {} ({})",
         },
     [TimelineEventTypeRecheckExpired] =
         {
             .display = "Recheck expired",
-            .icon = "timer_sync",
+            .icon = mdi_timer_sync,
             .args_min = 1,
             .template =
                 "Forcefully performed a full recheck because game has remained idle for {} day(s)",
@@ -126,7 +126,7 @@ const TimelineEventTypeInfo timeline_event_type[] = {
     [TimelineEventTypeRecheckUserReq] =
         {
             .display = "Recheck requested",
-            .icon = "reload_alert",
+            .icon = mdi_reload_alert,
             .args_min = 0,
             .template = "Forcefully performed a full recheck requested by user",
         },
