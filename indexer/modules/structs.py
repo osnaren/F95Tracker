@@ -360,20 +360,6 @@ class IntEnumHack(enum.IntEnum):
             setattr(cls, new_name, self)
 
 
-Os = IntEnumHack("Os", [
-    ("Windows", 1),
-    ("Linux",   2),
-    ("MacOS",   3),
-])
-
-
-DisplayMode = IntEnumHack("DisplayMode", [
-    ("list",   (1, {"icon": "view_agenda_outline"})),
-    ("grid",   (2, {"icon": "view_grid_outline"})),
-    ("kanban", (3, {"icon": "view_week_outline"})),
-])
-
-
 Status = IntEnumHack("Status", [
     ("Normal",    (1, {"color" : (0.95, 0.95, 0.95), "icon": "lightning_bolt_circle"})),
     ("Completed", (2, {"color" : (0.00, 0.87, 0.00), "icon": "checkbox_marked_circle"})),
@@ -541,13 +527,6 @@ Tag = IntEnumHack("Tag", [
 ])
 
 
-TagHighlight = IntEnumHack("TagHighlight", [
-    ("Positive", (1, {"color": (0.0, 0.6, 0.0, 1.0)})),
-    ("Negative", (2, {"color": (0.6, 0.0, 0.0, 1.0)})),
-    ("Critical", (3, {"color": (0.0, 0.0, 0.0, 1.0)})),
-])
-
-
 ExeState = IntEnumHack("ExeState", [
     ("Invalid",  1),
     ("Selected", 2),
@@ -586,21 +565,6 @@ Category = IntEnumHack("Category", [
 ])
 
 
-ProxyType = IntEnumHack("ProxyType", [
-    ("Disabled", 1),
-    ("SOCKS4",   2),
-    ("SOCKS5",   3),
-    ("HTTP",     4),
-])
-
-
-TexCompress = IntEnumHack("TexCompress", [
-    ("Disabled", 1),
-    ("ASTC",     2),
-    ("BC7",      3),
-])
-
-
 @dataclasses.dataclass(slots=True)
 class Filter:
     mode: FilterMode
@@ -610,25 +574,6 @@ class Filter:
 
     def __post_init__(self):
         self.id = id(self)
-
-
-TimelineEventType = IntEnumHack("TimelineEventType", [
-    ("GameAdded",        (1,  {"display": "Added",             "icon": "alert_decagram", "args_min": 0, "template": "Added to the library"})),
-    ("GameLaunched",     (2,  {"display": "Launched",          "icon": "play",           "args_min": 1, "template": "Launched {}"})),
-    ("GameFinished",     (3,  {"display": "Finished",          "icon": "flag_checkered", "args_min": 1, "template": "Finished {}"})),
-    ("GameInstalled",    (4,  {"display": "Installed",         "icon": "download",       "args_min": 1, "template": "Installed {}"})),
-    ("ChangedName",      (5,  {"display": "Changed name",      "icon": "spellcheck",     "args_min": 2, "template": "Name changed from \"{}\" to \"{}\""})),
-    ("ChangedStatus",    (6,  {"display": "Changed status",    "icon": "lightning_bolt", "args_min": 2, "template": "Status changed from \"{}\" to \"{}\""})),
-    ("ChangedVersion",   (7,  {"display": "Changed version",   "icon": "star",           "args_min": 2, "template": "Version changed from \"{}\" to \"{}\""})),
-    ("ChangedDeveloper", (8,  {"display": "Changed developer", "icon": "account",        "args_min": 2, "template": "Developer changed from \"{}\" to \"{}\""})),
-    ("ChangedType",      (9,  {"display": "Changed type",      "icon": "shape",          "args_min": 2, "template": "Type changed from \"{}\" to \"{}\""})),
-    ("TagsAdded",        (10, {"display": "Tags added",        "icon": "tag_plus",       "args_min": 1, "template": "Tags were added: {}"})),
-    ("TagsRemoved",      (11, {"display": "Tags removed",      "icon": "tag_minus",      "args_min": 1, "template": "Tags were removed: {}"})),
-    ("ScoreIncreased",   (12, {"display": "Score increased",   "icon": "thumb_up",       "args_min": 4, "template": "Forum score increased from {} ({}) to {} ({})"})),
-    ("ScoreDecreased",   (13, {"display": "Score decreased",   "icon": "thumb_down",     "args_min": 4, "template": "Forum score decreased from {} ({}) to {} ({})"})),
-    ("RecheckExpired",   (14, {"display": "Recheck expired",   "icon": "timer_sync",     "args_min": 1, "template": "Forcefully performed a full recheck because game has remained idle for {} day(s)"})),  # Unused
-    ("RecheckUserReq",   (15, {"display": "Recheck requested", "icon": "reload_alert",   "args_min": 0, "template": "Forcefully performed a full recheck requested by user"})),
-])
 
 
 @dataclasses.dataclass(slots=True)
@@ -797,97 +742,6 @@ class Browser:
 
 Browser.add("Integrated", 0)
 Browser.add("Custom", -1)
-
-
-@dataclasses.dataclass(slots=True)
-class Settings:
-    background_on_close         : bool
-    bg_notifs_interval          : int
-    bg_refresh_interval         : int
-    browser                     : Browser.get
-    browser_custom_arguments    : str
-    browser_custom_executable   : str
-    browser_html                : bool
-    browser_private             : bool
-    cell_image_ratio            : float
-    check_notifs                : bool
-    compact_timeline            : bool
-    confirm_on_remove           : bool
-    copy_urls_as_bbcode         : bool
-    datestamp_format            : str
-    default_exe_dir             : dict[Os, str]
-    default_tab_is_new          : bool
-    display_mode                : DisplayMode
-    display_tab                 : Tab.get
-    downloads_dir               : dict[Os, str]
-    ext_background_add          : bool
-    ext_highlight_tags          : bool
-    ext_icon_glow               : bool
-    filter_all_tabs             : bool
-    fit_images                  : bool
-    grid_columns                : int
-    hidden_timeline_events      : list[TimelineEventType]
-    hide_empty_tabs             : bool
-    highlight_tags              : bool
-    ignore_semaphore_timeouts   : bool
-    independent_tab_views       : bool
-    insecure_ssl                : bool
-    interface_scaling           : float
-    last_successful_refresh     : Timestamp
-    manual_sort_list            : list[int]
-    mark_installed_after_add    : bool
-    max_connections             : int
-    max_retries                 : int
-    notifs_show_update_banner   : bool
-    play_gifs                   : bool
-    play_gifs_unfocused         : bool
-    preload_nearby_images       : bool
-    proxy_type                  : ProxyType
-    proxy_host                  : str
-    proxy_port                  : int
-    proxy_username              : str
-    proxy_password              : str
-    quick_filters               : bool
-    refresh_archived_games      : bool
-    refresh_completed_games     : bool
-    render_when_unfocused       : bool
-    request_timeout             : int
-    rpc_enabled                 : bool
-    rpdl_password               : str
-    rpdl_token                  : str
-    rpdl_username               : str
-    scroll_amount               : float
-    scroll_smooth               : bool
-    scroll_smooth_speed         : float
-    select_executable_after_add : bool
-    show_remove_btn             : bool
-    software_webview            : bool
-    start_in_background         : bool
-    start_refresh               : bool
-    style_accent                : tuple[float]
-    style_alt_bg                : tuple[float]
-    style_bg                    : tuple[float]
-    style_border                : tuple[float]
-    style_corner_radius         : int
-    style_text                  : tuple[float]
-    style_text_dim              : tuple[float]
-    table_header_outside_list   : bool
-    tags_highlights             : dict[Tag, TagHighlight]
-    tex_compress                : TexCompress
-    tex_compress_replace        : bool
-    timestamp_format            : str
-    unload_offscreen_images     : bool
-    vsync_ratio                 : int
-    weighted_score              : bool
-    zoom_area                   : int
-    zoom_enabled                : bool
-    zoom_times                  : float
-
-    def __post_init__(self):
-        if "" in self.default_exe_dir:
-            from modules import globals
-            self.default_exe_dir[globals.os] = self.default_exe_dir[""]
-            del self.default_exe_dir[""]
 
 
 Type = IntEnumHack("Type", [
