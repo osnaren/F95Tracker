@@ -2,27 +2,27 @@
 
 #include <fonts/mdi.h>
 
-SMARTENUM_DEFINE(DisplayMode, DisplayMode)
+SMARTENUM_DEFINE(_DisplayMode, DisplayMode)
 const DisplayModeInfo display_mode[] = {
     [DisplayModeList] = {.icon = mdi_view_agenda_outline},
     [DisplayModeGrid] = {.icon = mdi_view_grid_outline},
     [DisplayModeKanban] = {.icon = mdi_view_week_outline},
 };
 
-SMARTENUM_DEFINE(Os, Os)
+SMARTENUM_DEFINE(_Os, Os)
 
-SMARTENUM_DEFINE(ProxyType, ProxyType)
+SMARTENUM_DEFINE(_ProxyType, ProxyType)
 
-SMARTENUM_DEFINE(TagHighlight, TagHighlight)
+SMARTENUM_DEFINE(_TagHighlight, TagHighlight)
 const TagHighlightInfo tag_highlight[] = {
     [TagHighlightPositive] = {.color = {{0.0, 0.6, 0.0, 1.0}}},
     [TagHighlightNegative] = {.color = {{0.6, 0.0, 0.0, 1.0}}},
     [TagHighlightCritical] = {.color = {{0.0, 0.0, 0.0, 1.0}}},
 };
 
-SMARTENUM_DEFINE(TexCompress, TexCompress)
+SMARTENUM_DEFINE(_TexCompress, TexCompress)
 
-SMARTENUM_DEFINE(TimelineEventType, TimelineEventType)
+SMARTENUM_DEFINE(_TimelineEventType, TimelineEventType)
 const TimelineEventTypeInfo timeline_event_type[] = {
     [TimelineEventTypeGameAdded] =
         {

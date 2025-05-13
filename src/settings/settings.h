@@ -4,62 +4,62 @@
 #include <smart_enum/smart_enum.h>
 #include <std.h>
 
-#define DisplayMode(_)    \
-    _(DisplayModeList, 1) \
-    _(DisplayModeGrid, 2) \
-    _(DisplayModeKanban, 3)
-SMARTENUM_DECLARE(DisplayMode, DisplayMode)
+#define _DisplayMode(_, $) \
+    _($, List, 1)          \
+    _($, Grid, 2)          \
+    _($, Kanban, 3)
+SMARTENUM_DECLARE(_DisplayMode, DisplayMode)
 typedef struct {
     const char* icon;
 } DisplayModeInfo;
 extern const DisplayModeInfo display_mode[];
 
-#define Os(_)       \
-    _(OsWindows, 1) \
-    _(OsLinux, 2)   \
-    _(OsMacOS, 3)
-SMARTENUM_DECLARE(Os, Os)
+#define _Os(_, $)    \
+    _($, Windows, 1) \
+    _($, Linux, 2)   \
+    _($, MacOS, 3)
+SMARTENUM_DECLARE(_Os, Os)
 
-#define ProxyType(_)        \
-    _(ProxyTypeDisabled, 1) \
-    _(ProxyTypeSOCKS4, 2)   \
-    _(ProxyTypeSOCKS5, 3)   \
-    _(ProxyTypeHTTP, 4)
-SMARTENUM_DECLARE(ProxyType, ProxyType)
+#define _ProxyType(_, $) \
+    _($, Disabled, 1)    \
+    _($, SOCKS4, 2)      \
+    _($, SOCKS5, 3)      \
+    _($, HTTP, 4)
+SMARTENUM_DECLARE(_ProxyType, ProxyType)
 
-#define TagHighlight(_)        \
-    _(TagHighlightPositive, 1) \
-    _(TagHighlightNegative, 2) \
-    _(TagHighlightCritical, 3)
-SMARTENUM_DECLARE(TagHighlight, TagHighlight)
+#define _TagHighlight(_, $) \
+    _($, Positive, 1)       \
+    _($, Negative, 2)       \
+    _($, Critical, 3)
+SMARTENUM_DECLARE(_TagHighlight, TagHighlight)
 typedef struct {
     ImColor color;
 } TagHighlightInfo;
 extern const TagHighlightInfo tag_highlight[];
 
-#define TexCompress(_)        \
-    _(TexCompressDisabled, 1) \
-    _(TexCompressASTC, 2)     \
-    _(TexCompressBC7, 3)
-SMARTENUM_DECLARE(TexCompress, TexCompress)
+#define _TexCompress(_, $) \
+    _($, Disabled, 1)      \
+    _($, ASTC, 2)          \
+    _($, BC7, 3)
+SMARTENUM_DECLARE(_TexCompress, TexCompress)
 
-#define TimelineEventType(_)                            \
-    _(TimelineEventTypeGameAdded, 1)                    \
-    _(TimelineEventTypeGameLaunched, 2)                 \
-    _(TimelineEventTypeGameFinished, 3)                 \
-    _(TimelineEventTypeGameInstalled, 4)                \
-    _(TimelineEventTypeChangedName, 5)                  \
-    _(TimelineEventTypeChangedStatus, 6)                \
-    _(TimelineEventTypeChangedVersion, 7)               \
-    _(TimelineEventTypeChangedDeveloper, 8)             \
-    _(TimelineEventTypeChangedType, 9)                  \
-    _(TimelineEventTypeTagsAdded, 10)                   \
-    _(TimelineEventTypeTagsRemoved, 11)                 \
-    _(TimelineEventTypeScoreIncreased, 12)              \
-    _(TimelineEventTypeScoreDecreased, 13)              \
-    _(TimelineEventTypeRecheckExpired, 14) /* Unused */ \
-    _(TimelineEventTypeRecheckUserReq, 15)
-SMARTENUM_DECLARE(TimelineEventType, TimelineEventType)
+#define _TimelineEventType(_, $)          \
+    _($, GameAdded, 1)                    \
+    _($, GameLaunched, 2)                 \
+    _($, GameFinished, 3)                 \
+    _($, GameInstalled, 4)                \
+    _($, ChangedName, 5)                  \
+    _($, ChangedStatus, 6)                \
+    _($, ChangedVersion, 7)               \
+    _($, ChangedDeveloper, 8)             \
+    _($, ChangedType, 9)                  \
+    _($, TagsAdded, 10)                   \
+    _($, TagsRemoved, 11)                 \
+    _($, ScoreIncreased, 12)              \
+    _($, ScoreDecreased, 13)              \
+    _($, RecheckExpired, 14) /* Unused */ \
+    _($, RecheckUserReq, 15)
+SMARTENUM_DECLARE(_TimelineEventType, TimelineEventType)
 typedef struct {
     const char* display;
     const char* icon;
