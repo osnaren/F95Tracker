@@ -1,4 +1,5 @@
 #include "window.h"
+#include "util.h"
 
 const char* ok = mdi_check " Ok";
 const char* cancel = mdi_cancel " Cancel";
@@ -22,6 +23,8 @@ void gui_window_draw(Gui* gui) {
     ImGui_PopStyleVar();
 
     ImGui_Text("Hello, World!");
+
+    ImGui_InputTextMstring("###str_test", gui->str_test, ImGuiInputTextFlags_None);
 
     ImGui_End();
 }

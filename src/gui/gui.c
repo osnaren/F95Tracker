@@ -12,6 +12,8 @@ Gui* gui_init(void) {
         return NULL;
     }
 
+    m_string_init(gui->str_test);
+
     gui->io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     gui->io->IniFilename = NULL;
     gui->io->LogFilename = NULL;
@@ -42,6 +44,7 @@ void gui_tick(Gui* gui) {
 }
 
 void gui_free(Gui* gui) {
+    m_string_clear(gui->str_test);
     gui_backend_shutdown(gui);
     free(gui);
 }

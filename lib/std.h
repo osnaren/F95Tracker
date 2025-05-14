@@ -8,6 +8,7 @@
 #include <inttypes.h>
 #include <limits.h>
 // #include <math.h>
+#include <mlib/m-string.h>
 // #include <stdarg.h>
 // #include <stdbool.h>
 // #include <stddef.h>

@@ -102,6 +102,9 @@ else()
     target_link_libraries(F95Checker PRIVATE SQLite::SQLite3)
 endif()
 
+# M*LIB
+target_compile_options(F95Checker PRIVATE -D M_USE_SMALL_NAME=0)  # Disable legacy type/function names
+
 # Build as (almost) static executable
 # Adding -static prevents loading OpenGL (or any other) shared libraries at runtime
 target_link_libraries(F95Checker PRIVATE -static-libgcc -static-libstdc++)
