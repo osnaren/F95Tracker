@@ -4,6 +4,9 @@
 [submodule "lib/vendor/sdl3"]
 	path = lib/vendor/sdl3
 	url = https://github.com/libsdl-org/SDL.git
+[submodule "lib/vendor/curl"]
+	path = lib/vendor/curl
+	url = https://github.com/curl/curl.git
 [submodule "lib/vendor/dear_bindings"]
 	path = lib/vendor/dear_bindings
 	url = https://github.com/dearimgui/dear_bindings.git

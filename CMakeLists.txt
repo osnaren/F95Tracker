@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(F95Checker)
 
+option(F95CHECKER_VENDORED_CURL     "Statically build and link cURL, will not require cURL on target system to run"         ON)
 option(F95CHECKER_VENDORED_SDL3     "Statically build and link SDL3, will not require SDL3 on target system to run"         ON)
 option(F95CHECKER_VENDORED_SQLITE3  "Statically build and link SQLite3, will not require SQLite3 on target system to run"   ON)
 option(F95CHECKER_PYTHON_VENV       "Use a dedicated python venv instead of system python, requirements are auto-installed" ON)
@@ -17,6 +18,7 @@ set(VENV_DIR "${CMAKE_CURRENT_BINARY_DIR}/venv")
 set(GLAD_DIR "${LIB_DIR}/glad")
 set(GLAD_GEN "${VENDOR_DIR}/glad")
 set(SDL3_DIR "${VENDOR_DIR}/sdl3")
+set(CURL_DIR "${VENDOR_DIR}/curl")
 set(CWALK_DIR "${VENDOR_DIR}/cwalk")
 set(IMGUI_DIR "${VENDOR_DIR}/imgui")
 set(DCIMGUI_DIR "${LIB_DIR}/dcimgui")
@@ -109,6 +111,17 @@ target_compile_options(F95Checker PRIVATE -D M_USE_SMALL_NAME=0)  # Disable lega
 # cwalk
 add_subdirectory("${CWALK_DIR}" EXCLUDE_FROM_ALL)
 target_link_libraries(F95Checker PRIVATE cwalk)
+
+# cURL
+if(F95CHECKER_VENDORED_CURL)
+    set(BUILD_CURL_EXE OFF)
+    set(BUILD_STATIC_LIBS ON)
+    add_subdirectory("${CURL_DIR}" EXCLUDE_FROM_ALL)
+    target_link_libraries(F95Checker PRIVATE libcurl_static)
+else()
+    find_package(CURL REQUIRED)
+    target_link_libraries(F95Checker PRIVATE CURL::libcurl)
+endif()
 
 # Build as (almost) static executable
 # Adding -static prevents loading OpenGL (or any other) shared libraries at runtime
