@@ -9,18 +9,21 @@
 const flt32_t scroll_multiplier = 2.0f;
 const flt32_t scroll_smoothing = 8.0f;
 
+static void gui_backend_sdl_perror(const char* s) {
+    custom_perror(s, SDL_GetError());
+}
+
 bool gui_backend_init(Gui* gui, const char* title, uint32_t width, uint32_t height) {
     // Prefer Wayland when available
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "wayland");
 
     if(!SDL_Init(SDL_INIT_VIDEO)) {
-        const char* sdl_init_error = SDL_GetError();
-        printf("Error: SDL_Init(): %s\n", sdl_init_error);
+        gui_backend_sdl_perror("SDL_Init()");
 
-        if(strcmp(sdl_init_error, "wayland not available") == 0) {
+        if(strcmp(SDL_GetError(), "wayland not available") == 0) {
             SDL_ResetHint(SDL_HINT_VIDEO_DRIVER);
             if(!SDL_Init(SDL_INIT_VIDEO)) {
-                printf("Error: SDL_Init(): %s\n", SDL_GetError());
+                gui_backend_sdl_perror("SDL_Init()");
                 return false;
             }
         } else {
@@ -42,7 +45,7 @@ bool gui_backend_init(Gui* gui, const char* title, uint32_t width, uint32_t heig
                                          SDL_WINDOW_HIGH_PIXEL_DENSITY;
     gui->window = SDL_CreateWindow(title, width, height, window_flags);
     if(gui->window == NULL) {
-        printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
+        gui_backend_sdl_perror("SDL_CreateWindow()");
         return false;
     }
     SDL_SetWindowMinimumSize(gui->window, 720, 400);
@@ -53,7 +56,7 @@ bool gui_backend_init(Gui* gui, const char* title, uint32_t width, uint32_t heig
 
     const int32_t version = gladLoadGL(SDL_GL_GetProcAddress);
     if(version == 0) {
-        printf("Error: gladLoadGL(): Failed to initialize OpenGL context\n");
+        custom_perror("gladLoadGL()", "failed to initialize OpenGL context");
         SDL_GL_DestroyContext(gui->gl);
         SDL_DestroyWindow(gui->window);
         SDL_Quit();
