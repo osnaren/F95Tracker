@@ -33,6 +33,7 @@
 - Fix adding executables focusing the wrong folder if the game type is in only one of the folders (by @WillyJL)
 - Fix marking as executable on Linux/MacOS with RenPy games including a dot in their name (by @WillyJL)
 - Fix readability on some framed text with dark text (by @WillyJL)
+- RPDL token is regenerated once it expires (by @WillyJL)
 
 ### Removed:
 - Excluded `libEGL.so` on linux binary bundles, fixes "Cannot find EGLConfig, returning null config" (by @WillyJL)
