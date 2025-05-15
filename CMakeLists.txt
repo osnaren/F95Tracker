@@ -17,6 +17,7 @@ set(VENV_DIR "${CMAKE_CURRENT_BINARY_DIR}/venv")
 set(GLAD_DIR "${LIB_DIR}/glad")
 set(GLAD_GEN "${VENDOR_DIR}/glad")
 set(SDL3_DIR "${VENDOR_DIR}/sdl3")
+set(CWALK_DIR "${VENDOR_DIR}/cwalk")
 set(IMGUI_DIR "${VENDOR_DIR}/imgui")
 set(DCIMGUI_DIR "${LIB_DIR}/dcimgui")
 set(SQLITE3_DIR "${VENDOR_DIR}/sqlite3")
@@ -35,7 +36,7 @@ add_compile_options(-Werror)  # Fail on any warning
 
 # Global includes
 # Allows #include <dcimgui/dcimgui.h> instead of just #include <dcimgui.h>
-include_directories("${LIB_DIR}" "${VENDOR_DIR}")
+include_directories("${SRC_DIR}" "${LIB_DIR}" "${VENDOR_DIR}")
 
 # Main sources
 # Globbing is discouraged but fine when keeping in mind its caveat:
@@ -104,6 +105,10 @@ endif()
 
 # M*LIB
 target_compile_options(F95Checker PRIVATE -D M_USE_SMALL_NAME=0)  # Disable legacy type/function names
+
+# cwalk
+add_subdirectory("${CWALK_DIR}" EXCLUDE_FROM_ALL)
+target_link_libraries(F95Checker PRIVATE cwalk)
 
 # Build as (almost) static executable
 # Adding -static prevents loading OpenGL (or any other) shared libraries at runtime

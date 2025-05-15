@@ -13,3 +13,6 @@
 [submodule "lib/vendor/mlib"]
 	path = lib/vendor/mlib
 	url = https://github.com/P-p-H-d/mlib.git
+[submodule "lib/vendor/cwalk"]
+	path = lib/vendor/cwalk
+	url = https://github.com/likle/cwalk.git

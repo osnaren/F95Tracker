@@ -1,0 +1,147 @@
+#include "path.h"
+
+#include <cwalk/include/cwalk.h>
+#include <sys/stat.h>
+
+#define PATH_BUF_LEN 4096
+
+struct Path {
+    m_string_t str;
+};
+
+Path* path_init(const char* init) {
+    Path* path = malloc(sizeof(Path));
+    m_string_init_set(path->str, init);
+    path_normalize(path);
+    return path;
+}
+
+Path* path_init_data_dir(void) {
+    // FIXME: other OS's
+    Path* path = path_init(getenv("HOME"));
+    path_join(path, ".config/f95checker");
+    return path;
+}
+
+Path* path_dup(Path* path) {
+    return path_init(path_cstr(path));
+}
+
+const char* path_cstr(Path* path) {
+    return m_string_get_cstr(path->str);
+}
+
+const char* path_name(Path* path) {
+    const char* basename = NULL;
+    size_t basename_len = 0;
+    cwk_path_get_basename(path_cstr(path), &basename, &basename_len);
+    if(basename == NULL) {
+        return "";
+    }
+    assert(strlen(basename) == basename_len);
+    return basename;
+}
+
+const char* path_extension(Path* path) {
+    const char* extension = NULL;
+    size_t extension_len = 0;
+    cwk_path_get_extension(path_cstr(path), &extension, &extension_len);
+    if(extension == NULL) {
+        return "";
+    }
+    assert(strlen(extension) == extension_len);
+    return extension;
+}
+
+void path_set(Path* path, const char* set) {
+    m_string_set(path->str, set);
+    path_normalize(path);
+}
+
+void path_set_name(Path* path, const char* name) {
+    char path_buf[PATH_BUF_LEN];
+    cwk_path_change_basename(path_cstr(path), name, path_buf, sizeof(path_buf));
+    m_string_set(path->str, path_buf);
+}
+
+void path_set_extension(Path* path, const char* extension) {
+    char path_buf[PATH_BUF_LEN];
+    cwk_path_change_extension(path_cstr(path), extension, path_buf, sizeof(path_buf));
+    m_string_set(path->str, path_buf);
+}
+
+void path_normalize(Path* path) {
+    char path_buf[PATH_BUF_LEN];
+    cwk_path_normalize(path_cstr(path), path_buf, sizeof(path_buf));
+    m_string_set(path->str, path_buf);
+}
+
+void path_parent(Path* path) {
+    path_join(path, "..");
+}
+
+void path_join(Path* path, const char* join) {
+    char path_buf[PATH_BUF_LEN];
+    cwk_path_join(path_cstr(path), join, path_buf, sizeof(path_buf));
+    m_string_set(path->str, path_buf);
+}
+
+bool path_is_file(Path* path) {
+    struct stat st;
+    int32_t res = stat(path_cstr(path), &st);
+    if(res != 0) {
+        assert(res == -1);
+        if(errno != ENOENT) {
+            perror(path_cstr(path));
+        }
+        return false;
+    }
+    return S_ISREG(st.st_mode);
+}
+
+bool path_is_dir(Path* path) {
+    struct stat st;
+    int32_t res = stat(path_cstr(path), &st);
+    if(res != 0) {
+        assert(res == -1);
+        if(errno != ENOENT) {
+            perror(path_cstr(path));
+        }
+        return false;
+    }
+    return S_ISDIR(st.st_mode);
+}
+
+bool path_mkdir(Path* path, bool recursive) {
+    if(path_is_dir(path)) {
+        return true;
+    }
+    bool ret = true;
+
+    Path* parent = path_dup(path);
+    path_parent(parent);
+    if(!path_is_dir(parent)) {
+        if(recursive) {
+            ret = path_mkdir(parent, recursive);
+        } else {
+            ret = false;
+        }
+    }
+    path_free(parent);
+
+    if(ret) {
+        int32_t res = mkdir(path_cstr(path), 0755);
+        if(res != 0) {
+            assert(res == -1);
+            perror(path_cstr(path));
+            ret = false;
+        }
+    }
+
+    return ret;
+}
+
+void path_free(Path* path) {
+    m_string_clear(path->str);
+    free(path);
+}
