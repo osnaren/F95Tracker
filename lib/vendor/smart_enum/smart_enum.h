@@ -6,7 +6,7 @@
 /*
 	UTILS MACROS
 */
-#define __SMARTENUM_MACRO_ENTRY_NAME(enum_name, element_name) enum_name##element_name
+#define __SMARTENUM_MACRO_ENTRY_NAME(enum_name, element_name) enum_name##_##element_name
 #define __SMARTENUM_MACRO_ENTRY_CASE(entry_name) case entry_name:
 #define __SMARTENUM_MACRO_ENTRY_COMPARE(element_name) if(!strcmp(#element_name, str_value))
 

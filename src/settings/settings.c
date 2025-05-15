@@ -4,9 +4,9 @@
 
 SMARTENUM_DEFINE(_DisplayMode, DisplayMode)
 const DisplayModeInfo display_mode[] = {
-    [DisplayModeList] = {.icon = mdi_view_agenda_outline},
-    [DisplayModeGrid] = {.icon = mdi_view_grid_outline},
-    [DisplayModeKanban] = {.icon = mdi_view_week_outline},
+    [DisplayMode_List] = {.icon = mdi_view_agenda_outline},
+    [DisplayMode_Grid] = {.icon = mdi_view_grid_outline},
+    [DisplayMode_Kanban] = {.icon = mdi_view_week_outline},
 };
 
 SMARTENUM_DEFINE(_Os, Os)
@@ -15,107 +15,107 @@ SMARTENUM_DEFINE(_ProxyType, ProxyType)
 
 SMARTENUM_DEFINE(_TagHighlight, TagHighlight)
 const TagHighlightInfo tag_highlight[] = {
-    [TagHighlightPositive] = {.color = {{0.0, 0.6, 0.0, 1.0}}},
-    [TagHighlightNegative] = {.color = {{0.6, 0.0, 0.0, 1.0}}},
-    [TagHighlightCritical] = {.color = {{0.0, 0.0, 0.0, 1.0}}},
+    [TagHighlight_Positive] = {.color = {{0.0, 0.6, 0.0, 1.0}}},
+    [TagHighlight_Negative] = {.color = {{0.6, 0.0, 0.0, 1.0}}},
+    [TagHighlight_Critical] = {.color = {{0.0, 0.0, 0.0, 1.0}}},
 };
 
 SMARTENUM_DEFINE(_TexCompress, TexCompress)
 
 SMARTENUM_DEFINE(_TimelineEventType, TimelineEventType)
 const TimelineEventTypeInfo timeline_event_type[] = {
-    [TimelineEventTypeGameAdded] =
+    [TimelineEventType_GameAdded] =
         {
             .display = "Added",
             .icon = mdi_alert_decagram,
             .args_min = 0,
             .template = "Added to the library",
         },
-    [TimelineEventTypeGameLaunched] =
+    [TimelineEventType_GameLaunched] =
         {
             .display = "Launched",
             .icon = mdi_play,
             .args_min = 1,
             .template = "Launched {}",
         },
-    [TimelineEventTypeGameFinished] =
+    [TimelineEventType_GameFinished] =
         {
             .display = "Finished",
             .icon = mdi_flag_checkered,
             .args_min = 1,
             .template = "Finished {}",
         },
-    [TimelineEventTypeGameInstalled] =
+    [TimelineEventType_GameInstalled] =
         {
             .display = "Installed",
             .icon = mdi_download,
             .args_min = 1,
             .template = "Installed {}",
         },
-    [TimelineEventTypeChangedName] =
+    [TimelineEventType_ChangedName] =
         {
             .display = "Changed name",
             .icon = mdi_spellcheck,
             .args_min = 2,
             .template = "Name changed from \"{}\" to \"{}\"",
         },
-    [TimelineEventTypeChangedStatus] =
+    [TimelineEventType_ChangedStatus] =
         {
             .display = "Changed status",
             .icon = mdi_lightning_bolt,
             .args_min = 2,
             .template = "Status changed from \"{}\" to \"{}\"",
         },
-    [TimelineEventTypeChangedVersion] =
+    [TimelineEventType_ChangedVersion] =
         {
             .display = "Changed version",
             .icon = mdi_star,
             .args_min = 2,
             .template = "Version changed from \"{}\" to \"{}\"",
         },
-    [TimelineEventTypeChangedDeveloper] =
+    [TimelineEventType_ChangedDeveloper] =
         {
             .display = "Changed developer",
             .icon = mdi_account,
             .args_min = 2,
             .template = "Developer changed from \"{}\" to \"{}\"",
         },
-    [TimelineEventTypeChangedType] =
+    [TimelineEventType_ChangedType] =
         {
             .display = "Changed type",
             .icon = mdi_shape,
             .args_min = 2,
             .template = "Type changed from \"{}\" to \"{}\"",
         },
-    [TimelineEventTypeTagsAdded] =
+    [TimelineEventType_TagsAdded] =
         {
             .display = "Tags added",
             .icon = mdi_tag_plus,
             .args_min = 1,
             .template = "Tags were added: {}",
         },
-    [TimelineEventTypeTagsRemoved] =
+    [TimelineEventType_TagsRemoved] =
         {
             .display = "Tags removed",
             .icon = mdi_tag_minus,
             .args_min = 1,
             .template = "Tags were removed: {}",
         },
-    [TimelineEventTypeScoreIncreased] =
+    [TimelineEventType_ScoreIncreased] =
         {
             .display = "Score increased",
             .icon = mdi_thumb_up,
             .args_min = 4,
             .template = "Forum score increased from {} ({}) to {} ({})",
         },
-    [TimelineEventTypeScoreDecreased] =
+    [TimelineEventType_ScoreDecreased] =
         {
             .display = "Score decreased",
             .icon = mdi_thumb_down,
             .args_min = 4,
             .template = "Forum score decreased from {} ({}) to {} ({})",
         },
-    [TimelineEventTypeRecheckExpired] =
+    [TimelineEventType_RecheckExpired] =
         {
             .display = "Recheck expired",
             .icon = mdi_timer_sync,
@@ -123,7 +123,7 @@ const TimelineEventTypeInfo timeline_event_type[] = {
             .template =
                 "Forcefully performed a full recheck because game has remained idle for {} day(s)",
         },
-    [TimelineEventTypeRecheckUserReq] =
+    [TimelineEventType_RecheckUserReq] =
         {
             .display = "Recheck requested",
             .icon = mdi_reload_alert,
