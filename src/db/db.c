@@ -20,19 +20,30 @@ typedef struct {
 } DbColumn;
 
 typedef struct {
+    const char* old;
+    const char* new;
+} DbRename;
+
+typedef struct {
     const char* name;
     const DbColumn* columns;
     size_t columns_count;
+    const DbRename* renames;
+    size_t renames_count;
 } DbTable;
 
-#define DB_TABLE(table_name, columns_array)           \
+#define DB_TABLE(table_name, columns_array, renames_array)           \
     static const DbColumn _##table_name##_columns[] = columns_array; \
+    static const DbRename _##table_name##_renames[] = renames_array; \
     static const DbTable table_name##_table = {                      \
         .name = #table_name,                                         \
         .columns = _##table_name##_columns,                          \
         .columns_count = COUNT_OF(_##table_name##_columns),          \
+        .renames = _##table_name##_renames,                          \
+        .renames_count = COUNT_OF(_##table_name##_renames),          \
     }
 #define DB_COLUMNS(...) __VA_ARGS__
+#define DB_RENAMES(...) __VA_ARGS__
 
 static void db_perror(Db* db, const char* s) {
     custom_perror(s, sqlite3_errmsg(db->conn));
@@ -60,6 +71,120 @@ Db* db_init(void) {
     }
 
     return db;
+}
+
+static void db_append_column_spec(m_string_t* sql, const DbColumn* column) {
+    m_string_cat_printf(*sql, "%s %s", column->name, column->type);
+    if(column->dflt) {
+        m_string_cat_printf(*sql, " DEFAULT %s", column->dflt);
+    }
+    if(column->primary_key) {
+        m_string_cat(*sql, " PRIMARY KEY");
+        if(column->autoincrement) {
+            m_string_cat(*sql, " AUTOINCREMENT");
+        }
+    }
+    if(column->extra) {
+        m_string_cat_printf(*sql, " %s", column->extra);
+    }
+}
+
+static void db_create_table(Db* db, const DbTable* table) {
+    m_string_t sql;
+    m_string_init_printf(sql, "CREATE TABLE IF NOT EXISTS %s (", table->name);
+    for(size_t col = 0; col < table->columns_count; col++) {
+        const DbColumn* column = &table->columns[col];
+        db_append_column_spec(&sql, column);
+        m_string_cat(sql, ",");
+    }
+    m_string_strim(sql, ",");
+    m_string_cat(sql, ")");
+
+    int32_t res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
+
+    // Rename columns
+    for(size_t ren = 0; ren < table->renames_count; ren++) {
+        const DbRename* rename = &table->renames[ren];
+        res = sqlite3_table_column_metadata(
+            db->conn,
+            NULL,
+            table->name,
+            rename->old,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL);
+        if(res == SQLITE_ERROR) {
+            continue; // Doesn't exist, nothing to rename
+        }
+
+        m_string_printf(
+            sql,
+            "ALTER TABLE %s RENAME COLUMN %s TO %s",
+            table->name,
+            rename->old,
+            rename->new);
+        res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
+        db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
+    }
+
+    // Add columns
+    for(size_t col = 0; col < table->columns_count; col++) {
+        const DbColumn* column = &table->columns[col];
+        res = sqlite3_table_column_metadata(
+            db->conn,
+            NULL,
+            table->name,
+            column->name,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL);
+        if(res == SQLITE_OK) {
+            continue; // Already exists, nothing to add
+        }
+
+        m_string_printf(sql, "ALTER TABLE %s ADD COLUMN ", table->name);
+        db_append_column_spec(&sql, column);
+        res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
+        db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
+    }
+
+    // Remove columns
+    m_string_printf(sql, "PRAGMA table_info(%s)", table->name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
+        db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+        const char* found_column = sqlite3_column_text(stmt, 1);
+        bool is_known = false;
+        for(size_t col = 0; col < table->columns_count; col++) {
+            const DbColumn* known_column = &table->columns[col];
+            if(strcmp(known_column->name, found_column) == 0) {
+                is_known = true;
+                break;
+            }
+        }
+        if(is_known) {
+            continue; // Should exist, nothing to remove
+        }
+
+        m_string_printf(sql, "ALTER TABLE %s DROP COLUMN %s", table->name, found_column);
+        res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
+        db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
+    }
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    // TODO: update column defs eg change type, default, etc...
+
+    m_string_clear(sql);
 }
 
 DB_TABLE(
@@ -147,9 +272,19 @@ DB_TABLE(
         {.name = "zoom_area", .type = "INTEGER", .dflt = "50"},
         {.name = "zoom_enabled", .type = "INTEGER", .dflt = "1"},
         {.name = "zoom_times", .type = "REAL", .dflt = "4.0"},
+    }),
+    DB_RENAMES({
+        {.old = "grid_image_ratio", .new = "cell_image_ratio"},
+        {.old = "minimize_on_close", .new = "background_on_close"},
+        {.old = "start_in_tray", .new = "start_in_background"},
+        {.old = "tray_notifs_interval", .new = "bg_notifs_interval"},
+        {.old = "tray_refresh_interval", .new = "bg_refresh_interval"},
+        {.old = "refresh_workers", .new = "max_connections"},
     }));
 
 void db_load_settings(Db* db, Settings* settings) {
+    db_create_table(db, &settings_table);
+
     m_string_t sql;
     m_string_init_set(sql, "SELECT ");
     for(size_t col = 0; col < settings_table.columns_count; col++) {

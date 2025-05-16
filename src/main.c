@@ -11,6 +11,12 @@ int32_t main(int32_t argc, char** argv) {
         ret = 1;
         goto exit_db;
     }
+    // FIXME: decide how to organize "global" objects,
+    // maybe all owned by Gui object though that would get messy,
+    // or maybe a single global App struct that has pointers to all these objects
+    Settings* settings = settings_init();
+    db_load_settings(db, settings);
+    settings_free(settings);
 
     Gui* gui = gui_init();
     if(gui == NULL) {
