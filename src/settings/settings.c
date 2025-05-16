@@ -132,8 +132,34 @@ const TimelineEventTypeInfo timeline_event_type[] = {
         },
 };
 
-// def __post_init__(self):
-//     if "" in self.default_exe_dir:
-//     from modules import globals
-//     self.default_exe_dir[globals.os] = self.default_exe_dir[""]
-//     del self.default_exe_dir[""]
+Settings* settings_init(void) {
+    Settings* settings = malloc(sizeof(Settings));
+
+    m_string_init(settings->browser_custom_arguments);
+    m_string_init(settings->browser_custom_executable);
+    m_string_init(settings->datestamp_format);
+    m_string_init(settings->proxy_host);
+    m_string_init(settings->proxy_username);
+    m_string_init(settings->proxy_password);
+    m_string_init(settings->rpdl_password);
+    m_string_init(settings->rpdl_token);
+    m_string_init(settings->rpdl_username);
+    m_string_init(settings->timestamp_format);
+
+    return settings;
+}
+
+void settings_free(Settings* settings) {
+    m_string_clear(settings->browser_custom_arguments);
+    m_string_clear(settings->browser_custom_executable);
+    m_string_clear(settings->datestamp_format);
+    m_string_clear(settings->proxy_host);
+    m_string_clear(settings->proxy_username);
+    m_string_clear(settings->proxy_password);
+    m_string_clear(settings->rpdl_password);
+    m_string_clear(settings->rpdl_token);
+    m_string_clear(settings->rpdl_username);
+    m_string_clear(settings->timestamp_format);
+
+    free(settings);
+}

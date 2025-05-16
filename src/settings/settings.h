@@ -100,7 +100,7 @@ typedef struct {
     bool ignore_semaphore_timeouts;
     bool independent_tab_views;
     bool insecure_ssl;
-    float interface_scaling;
+    flt32_t interface_scaling;
     // Timestamp last_successful_refresh;
     // list[int] manual_sort_list;
     bool mark_installed_after_add;
@@ -151,3 +151,6 @@ typedef struct {
     bool zoom_enabled;
     flt32_t zoom_times;
 } Settings;
+
+Settings* settings_init(void);
+void settings_free(Settings* settings);
