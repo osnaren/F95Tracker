@@ -36,6 +36,10 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 add_compile_options(-Werror)  # Fail on any warning
 
+# Build vendored libs statically
+set(BUILD_STATIC_LIBS ON)
+set(BUILD_SHARED_LIBS OFF)
+
 # Global includes
 # Allows #include <dcimgui/dcimgui.h> instead of just #include <dcimgui.h>
 include_directories("${SRC_DIR}" "${LIB_DIR}" "${VENDOR_DIR}")
@@ -77,6 +81,14 @@ target_link_libraries(F95Checker PRIVATE glad)
 # SDL3
 if(F95CHECKER_VENDORED_SDL3)
     set(SDL_STATIC ON)
+    set(SDL_AUDIO OFF)
+    set(SDL_CAMERA OFF)
+    set(SDL_DIALOG OFF)
+    set(SDL_GPU OFF)
+    set(SDL_HAPTIC OFF)
+    set(SDL_POWER OFF)
+    set(SDL_RENDER OFF)
+    set(SDL_SENSOR OFF)
     add_subdirectory("${SDL3_DIR}" EXCLUDE_FROM_ALL)
     target_link_libraries(F95Checker PRIVATE SDL3-static)
 else()
@@ -118,7 +130,15 @@ target_link_libraries(F95Checker PRIVATE cwalk)
 # cURL
 if(F95CHECKER_VENDORED_CURL)
     set(BUILD_CURL_EXE OFF)
-    set(BUILD_STATIC_LIBS ON)
+    set(BUILD_STATIC_CURL ON)
+    set(HTTP_ONLY ON)
+    set(CURL_BROTLI "OFF" CACHE STRING "NO BROTLI")
+    set(CURL_ZLIB "OFF" CACHE STRING "NO ZLIB")
+    set(CURL_ZSTD "OFF" CACHE STRING "NO ZSTD")
+    set(CURL_USE_LIBPSL OFF)
+    set(CURL_USE_LIBSSH2 OFF)
+    set(USE_LIBIDN2 OFF)
+    set(USE_NGHTTP2 OFF)
     add_subdirectory("${CURL_DIR}" EXCLUDE_FROM_ALL)
     target_link_libraries(F95Checker PRIVATE libcurl_static)
 else()
