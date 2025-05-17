@@ -90,8 +90,12 @@ static void db_append_column_spec(m_string_t* sql, const DbColumn* column) {
 }
 
 static void db_create_table(Db* db, const DbTable* table) {
+    int32_t res;
     m_string_t sql;
-    m_string_init_printf(sql, "CREATE TABLE IF NOT EXISTS %s (", table->name);
+    m_string_init(sql);
+
+    // Create table
+    m_string_printf(sql, "CREATE TABLE IF NOT EXISTS %s (", table->name);
     for(size_t col = 0; col < table->columns_count; col++) {
         const DbColumn* column = &table->columns[col];
         db_append_column_spec(&sql, column);
@@ -100,7 +104,7 @@ static void db_create_table(Db* db, const DbTable* table) {
     m_string_strim(sql, ",");
     m_string_cat(sql, ")");
 
-    int32_t res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
+    res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
 
     // Rename columns
@@ -283,10 +287,23 @@ DB_TABLE(
     }));
 
 void db_load_settings(Db* db, Settings* settings) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    // Create the table and handle schema migrations
     db_create_table(db, &settings_table);
 
-    m_string_t sql;
-    m_string_init_set(sql, "SELECT ");
+    // Insert the main settings row
+    m_string_printf(
+        sql,
+        "INSERT INTO %s (_) VALUES (0) ON CONFLICT DO NOTHING",
+        settings_table.name);
+    res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
+
+    // Read the main settings row
+    m_string_set(sql, "SELECT ");
     for(size_t col = 0; col < settings_table.columns_count; col++) {
         m_string_cat(sql, settings_table.columns[col].name);
         m_string_cat(sql, ",");
@@ -295,7 +312,7 @@ void db_load_settings(Db* db, Settings* settings) {
     m_string_cat_printf(sql, " FROM %s", settings_table.name);
 
     sqlite3_stmt* stmt;
-    int32_t res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
 
     res = sqlite3_step(stmt);
