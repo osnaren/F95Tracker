@@ -1,4 +1,5 @@
 #include "window.h"
+#include "app.h"
 #include "util.h"
 
 const char* ok = mdi_check " Ok";
@@ -23,6 +24,8 @@ void gui_window_draw(Gui* gui) {
     ImGui_PopStyleVar();
 
     ImGui_Text("Hello, World!");
+
+    ImGui_Text("Version: %s WIP", app.version);
 
     ImGui_InputTextMstring("###str_test", gui->str_test, ImGuiInputTextFlags_None);
 

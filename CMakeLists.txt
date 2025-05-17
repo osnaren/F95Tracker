@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(F95Checker)
+project(F95Checker VERSION 12.0.0)
 
 option(F95CHECKER_VENDORED_CURL     "Statically build and link cURL, will not require cURL on target system to run"         ON)
 option(F95CHECKER_VENDORED_SDL3     "Statically build and link SDL3, will not require SDL3 on target system to run"         ON)
@@ -54,6 +54,9 @@ target_compile_options(F95Checker PRIVATE -std=gnu2x)  # Standard
 target_compile_options(F95Checker PRIVATE -Wall -Wextra -Wstrict-prototypes -Wredundant-decls -Wundef)  # Warnings
 target_compile_options(F95Checker PRIVATE -fdata-sections -ffunction-sections -fno-math-errno)  # Optimizations
 
+# Metadata
+target_compile_definitions(F95Checker PRIVATE F95CHECKER_VERSION="${CMAKE_PROJECT_VERSION}")  # Version
+
 # Python (needed for GLAD and dear_bindings)
 find_package(Python COMPONENTS Interpreter REQUIRED)
 if(F95CHECKER_PYTHON_VENV)
@@ -106,7 +109,7 @@ else()
 endif()
 
 # M*LIB
-target_compile_options(F95Checker PRIVATE -D M_USE_SMALL_NAME=0)  # Disable legacy type/function names
+target_compile_definitions(F95Checker PRIVATE M_USE_SMALL_NAME=0)  # Disable legacy type/function names
 
 # cwalk
 add_subdirectory("${CWALK_DIR}" EXCLUDE_FROM_ALL)
