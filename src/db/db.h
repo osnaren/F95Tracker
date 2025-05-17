@@ -106,4 +106,5 @@ typedef struct Db Db;
 
 Db* db_init(void);
 void db_load_settings(Db* db, Settings* settings);
+void db_save_settings(Db* db, const Settings* settings, SettingsColumn column);
 void db_free(Db* db);

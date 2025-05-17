@@ -19,8 +19,6 @@ typedef struct {
     ImVec2 scroll_energy;
     bool requested_close;
     bool should_close;
-
-    m_string_t str_test;
 } Gui;
 
 Gui* gui_init(void);

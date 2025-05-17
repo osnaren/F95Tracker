@@ -27,7 +27,33 @@ void gui_window_draw(Gui* gui) {
 
     ImGui_Text("Version: %s WIP", app.version);
 
-    ImGui_InputTextMstring("###str_test", gui->str_test, ImGuiInputTextFlags_None);
+    ImGui_AlignTextToFramePadding();
+    ImGui_Text("Browser Custom Arguments (DB test/demo):");
+    ImGui_SameLine();
+    ImGui_SetNextItemWidth(690.0f);
+    ImGui_InputTextMstring(
+        "###browser_custom_arguments",
+        app.settings->browser_custom_arguments,
+        ImGuiInputTextFlags_None);
+    if(ImGui_IsItemDeactivatedAfterEdit()) {
+        db_save_settings(app.db, app.settings, SettingsColumn_browser_custom_arguments);
+    }
+
+    ImGui_AlignTextToFramePadding();
+    ImGui_Text("BG interval (DB test/demo):");
+    ImGui_SameLine();
+    ImGui_SetNextItemWidth(100.0f);
+    ImGui_DragIntEx(
+        "###bg_refresh_interval",
+        &app.settings->bg_refresh_interval,
+        4.0,
+        30,
+        1440,
+        "%d min",
+        ImGuiSliderFlags_None);
+    if(ImGui_IsItemDeactivatedAfterEdit()) {
+        db_save_settings(app.db, app.settings, SettingsColumn_bg_refresh_interval);
+    }
 
     ImGui_End();
 }

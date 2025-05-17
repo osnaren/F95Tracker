@@ -70,8 +70,8 @@ extern const TimelineEventTypeInfo timeline_event_type[];
 
 typedef struct {
     bool background_on_close;
-    uint16_t bg_notifs_interval;
-    uint16_t bg_refresh_interval;
+    int32_t bg_notifs_interval;
+    int32_t bg_refresh_interval;
     // Browser.get browser;
     m_string_t browser_custom_arguments;
     m_string_t browser_custom_executable;
@@ -93,7 +93,7 @@ typedef struct {
     bool ext_icon_glow;
     bool filter_all_tabs;
     bool fit_images;
-    uint8_t grid_columns;
+    int32_t grid_columns;
     // list[TimelineEventType] hidden_timeline_events;
     bool hide_empty_tabs;
     bool highlight_tags;
@@ -104,22 +104,22 @@ typedef struct {
     // Timestamp last_successful_refresh;
     // list[int] manual_sort_list;
     bool mark_installed_after_add;
-    uint8_t max_connections;
-    uint8_t max_retries;
+    int32_t max_connections;
+    int32_t max_retries;
     bool notifs_show_update_banner;
     bool play_gifs;
     bool play_gifs_unfocused;
     bool preload_nearby_images;
     ProxyType proxy_type;
     m_string_t proxy_host;
-    uint16_t proxy_port;
+    int32_t proxy_port;
     m_string_t proxy_username;
     m_string_t proxy_password;
     bool quick_filters;
     bool refresh_archived_games;
     bool refresh_completed_games;
     bool render_when_unfocused;
-    uint8_t request_timeout;
+    int32_t request_timeout;
     bool rpc_enabled;
     m_string_t rpdl_password;
     m_string_t rpdl_token;
@@ -136,7 +136,7 @@ typedef struct {
     // tuple[float] style_alt_bg;
     // tuple[float] style_bg;
     // tuple[float] style_border;
-    uint8_t style_corner_radius;
+    int32_t style_corner_radius;
     // tuple[float] style_text;
     // tuple[float] style_text_dim;
     bool table_header_outside_list;
@@ -145,9 +145,9 @@ typedef struct {
     bool tex_compress_replace;
     m_string_t timestamp_format;
     bool unload_offscreen_images;
-    uint8_t vsync_ratio;
+    int32_t vsync_ratio;
     bool weighted_score;
-    uint16_t zoom_area;
+    int32_t zoom_area;
     bool zoom_enabled;
     flt32_t zoom_times;
 } Settings;
