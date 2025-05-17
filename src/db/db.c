@@ -6,8 +6,11 @@
 #define sqlite3_column_text(pStmt, i) (const char*)sqlite3_column_text(pStmt, i)
 #define sqlite3_column_count(pStmt)   (size_t)sqlite3_column_count(pStmt)
 
+#define DB_FILE "temp.sqlite3" // TODO: change when its ready
+
 struct Db {
     sqlite3* conn;
+    const char* name;
 };
 
 typedef struct {
@@ -59,7 +62,7 @@ Db* db_init(void) {
     Db* db = malloc(sizeof(Db));
 
     Path* path = path_init_data_dir();
-    path_join(path, "temp.sqlite3"); // TODO: change when its ready
+    path_join(path, DB_FILE);
     int32_t res = sqlite3_open(path_cstr(path), &db->conn);
     path_free(path);
 
@@ -69,6 +72,8 @@ Db* db_init(void) {
         free(db);
         return NULL;
     }
+
+    db->name = strdup(sqlite3_db_name(db->conn, 0));
 
     return db;
 }
@@ -112,7 +117,7 @@ static void db_create_table(Db* db, const DbTable* table) {
         const DbRename* rename = &table->renames[ren];
         res = sqlite3_table_column_metadata(
             db->conn,
-            NULL,
+            db->name,
             table->name,
             rename->old,
             NULL,
@@ -139,7 +144,7 @@ static void db_create_table(Db* db, const DbTable* table) {
         const DbColumn* column = &table->columns[col];
         res = sqlite3_table_column_metadata(
             db->conn,
-            NULL,
+            db->name,
             table->name,
             column->name,
             NULL,
@@ -430,6 +435,7 @@ void db_load_settings(Db* db, Settings* settings) {
 }
 
 void db_free(Db* db) {
+    free((char*)db->name);
     sqlite3_close(db->conn);
     free(db);
 }
