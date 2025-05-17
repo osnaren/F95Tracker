@@ -45,18 +45,21 @@ typedef struct {
     size_t renames_count;
 } DbTable;
 
-#define DB_TABLE(table_name, columns_array, renames_array)           \
-    static const DbColumn _##table_name##_columns[] = columns_array; \
-    static const DbRename _##table_name##_renames[] = renames_array; \
-    static const DbTable table_name##_table = {                      \
-        .name = #table_name,                                         \
-        .columns = _##table_name##_columns,                          \
-        .columns_count = COUNT_OF(_##table_name##_columns),          \
-        .renames = _##table_name##_renames,                          \
-        .renames_count = COUNT_OF(_##table_name##_renames),          \
-    }
-#define DB_COLUMNS(...) __VA_ARGS__
-#define DB_RENAMES(...) __VA_ARGS__
+#define DB_COLUMN_ITEM(enum_name, column, ...)    [enum_name##_##column] = {#column, __VA_ARGS__},
+#define DB_RENAME_ITEM(empty, old_name, new_name) {.old = #old_name, .new = #new_name},
+#define DB_TABLE_DEFINE(TABLE_MACRO, table_name, enum_name) \
+    static const DbColumn _##table_name##_columns[] = {     \
+        TABLE_MACRO(enum_name, DB_COLUMN_ITEM, DB_EMPTY)};  \
+    static const DbRename _##table_name##_renames[] = {     \
+        TABLE_MACRO(DB_EMPTY, DB_EMPTY, DB_RENAME_ITEM)};   \
+    static const DbTable table_name##_table = {             \
+        .name = #table_name,                                \
+        .columns = _##table_name##_columns,                 \
+        .columns_count = COUNT_OF(_##table_name##_columns), \
+        .renames = _##table_name##_renames,                 \
+        .renames_count = COUNT_OF(_##table_name##_renames), \
+    };
+DB_TABLE_DEFINE(_SETTINGS, settings, SettingsColumn)
 
 static void db_perror(Db* db, const char* s) {
     custom_perror(s, sqlite3_errmsg(db->conn));
@@ -230,101 +233,6 @@ static void db_create_table(Db* db, const DbTable* table) {
 
     m_string_clear(sql);
 }
-
-DB_TABLE(
-    settings,
-    DB_COLUMNS({
-        {.name = "_", .type = "INTEGER", .primary_key = true, .extra = "CHECK (_=0)"},
-        {.name = "background_on_close", .type = "INTEGER", .dflt = "0"},
-        {.name = "bg_notifs_interval", .type = "INTEGER", .dflt = "15"},
-        {.name = "bg_refresh_interval", .type = "INTEGER", .dflt = "30"},
-        {.name = "browser_custom_arguments", .type = "TEXT", .dflt = "''"},
-        {.name = "browser_custom_executable", .type = "TEXT", .dflt = "''"},
-        {.name = "browser_html", .type = "INTEGER", .dflt = "0"},
-        {.name = "browser_private", .type = "INTEGER", .dflt = "0"},
-        {.name = "browser", .type = "INTEGER", .dflt = "0"}, // Integrated
-        {.name = "cell_image_ratio", .type = "REAL", .dflt = "3.0"},
-        {.name = "check_notifs", .type = "INTEGER", .dflt = "0"},
-        {.name = "compact_timeline", .type = "INTEGER", .dflt = "0"},
-        {.name = "confirm_on_remove", .type = "INTEGER", .dflt = "1"},
-        {.name = "copy_urls_as_bbcode", .type = "INTEGER", .dflt = "0"},
-        {.name = "datestamp_format", .type = "TEXT", .dflt = "'%b %d, %Y'"},
-        {.name = "default_exe_dir", .type = "TEXT", .dflt = "'{}'"},
-        {.name = "default_tab_is_new", .type = "INTEGER", .dflt = "0"},
-        {.name = "display_mode", .type = "INTEGER", .dflt = "1"}, // DisplayMode_List
-        {.name = "display_tab", .type = "INTEGER", .dflt = "NULL"},
-        {.name = "downloads_dir", .type = "TEXT", .dflt = "'{}'"},
-        {.name = "ext_background_add", .type = "INTEGER", .dflt = "1"},
-        {.name = "ext_highlight_tags", .type = "INTEGER", .dflt = "1"},
-        {.name = "ext_icon_glow", .type = "INTEGER", .dflt = "1"},
-        {.name = "filter_all_tabs", .type = "INTEGER", .dflt = "0"},
-        {.name = "fit_images", .type = "INTEGER", .dflt = "0"},
-        {.name = "grid_columns", .type = "INTEGER", .dflt = "3"},
-        {.name = "hidden_timeline_events", .type = "TEXT", .dflt = "'[]'"},
-        {.name = "hide_empty_tabs", .type = "INTEGER", .dflt = "0"},
-        {.name = "highlight_tags", .type = "INTEGER", .dflt = "1"},
-        {.name = "ignore_semaphore_timeouts", .type = "INTEGER", .dflt = "0"},
-        {.name = "independent_tab_views", .type = "INTEGER", .dflt = "0"},
-        {.name = "insecure_ssl", .type = "INTEGER", .dflt = "0"},
-        {.name = "interface_scaling", .type = "REAL", .dflt = "1.0"},
-        {.name = "last_successful_refresh", .type = "INTEGER", .dflt = "0"},
-        {.name = "manual_sort_list", .type = "TEXT", .dflt = "'[]'"},
-        {.name = "mark_installed_after_add", .type = "INTEGER", .dflt = "0"},
-        {.name = "max_connections", .type = "INTEGER", .dflt = "10"},
-        {.name = "max_retries", .type = "INTEGER", .dflt = "2"},
-        {.name = "notifs_show_update_banner", .type = "INTEGER", .dflt = "1"},
-        {.name = "play_gifs", .type = "INTEGER", .dflt = "1"},
-        {.name = "play_gifs_unfocused", .type = "INTEGER", .dflt = "0"},
-        {.name = "preload_nearby_images", .type = "INTEGER", .dflt = "0"},
-        {.name = "proxy_type", .type = "INTEGER", .dflt = "1"}, // ProxyType_Disabled
-        {.name = "proxy_host", .type = "TEXT", .dflt = "''"},
-        {.name = "proxy_port", .type = "INTEGER", .dflt = "8080"},
-        {.name = "proxy_username", .type = "TEXT", .dflt = "''"},
-        {.name = "proxy_password", .type = "TEXT", .dflt = "''"},
-        {.name = "quick_filters", .type = "INTEGER", .dflt = "1"},
-        {.name = "refresh_archived_games", .type = "INTEGER", .dflt = "1"},
-        {.name = "refresh_completed_games", .type = "INTEGER", .dflt = "1"},
-        {.name = "render_when_unfocused", .type = "INTEGER", .dflt = "1"},
-        {.name = "request_timeout", .type = "INTEGER", .dflt = "30"},
-        {.name = "rpc_enabled", .type = "INTEGER", .dflt = "1"},
-        {.name = "rpdl_password", .type = "TEXT", .dflt = "''"},
-        {.name = "rpdl_token", .type = "TEXT", .dflt = "''"},
-        {.name = "rpdl_username", .type = "TEXT", .dflt = "''"},
-        {.name = "scroll_amount", .type = "REAL", .dflt = "1.0"},
-        {.name = "scroll_smooth", .type = "INTEGER", .dflt = "1"},
-        {.name = "scroll_smooth_speed", .type = "REAL", .dflt = "8.0"},
-        {.name = "select_executable_after_add", .type = "INTEGER", .dflt = "0"},
-        {.name = "show_remove_btn", .type = "INTEGER", .dflt = "0"},
-        {.name = "software_webview", .type = "INTEGER", .dflt = "0"},
-        {.name = "start_in_background", .type = "INTEGER", .dflt = "0"},
-        {.name = "start_refresh", .type = "INTEGER", .dflt = "0"},
-        {.name = "style_accent", .type = "TEXT", .dflt = "'{accent}'"}, // FIXME
-        {.name = "style_alt_bg", .type = "TEXT", .dflt = "'{alt_bg}'"}, // FIXME
-        {.name = "style_bg", .type = "TEXT", .dflt = "'{bg}'"}, // FIXME
-        {.name = "style_border", .type = "TEXT", .dflt = "'{border}'"}, // FIXME
-        {.name = "style_corner_radius", .type = "INTEGER", .dflt = "6"}, // FIXME
-        {.name = "style_text", .type = "TEXT", .dflt = "'{text}'"}, // FIXME
-        {.name = "style_text_dim", .type = "TEXT", .dflt = "'{text_dim}'"}, // FIXME
-        {.name = "table_header_outside_list", .type = "INTEGER", .dflt = "1"},
-        {.name = "tags_highlights", .type = "TEXT", .dflt = "'{}'"},
-        {.name = "tex_compress", .type = "INTEGER", .dflt = "1"}, // TexCompress_Disabled
-        {.name = "tex_compress_replace", .type = "INTEGER", .dflt = "0"},
-        {.name = "timestamp_format", .type = "TEXT", .dflt = "'%d/%m/%Y %H:%M'"},
-        {.name = "unload_offscreen_images", .type = "INTEGER", .dflt = "0"},
-        {.name = "vsync_ratio", .type = "INTEGER", .dflt = "1"},
-        {.name = "weighted_score", .type = "INTEGER", .dflt = "0"},
-        {.name = "zoom_area", .type = "INTEGER", .dflt = "50"},
-        {.name = "zoom_enabled", .type = "INTEGER", .dflt = "1"},
-        {.name = "zoom_times", .type = "REAL", .dflt = "4.0"},
-    }),
-    DB_RENAMES({
-        {.old = "grid_image_ratio", .new = "cell_image_ratio"},
-        {.old = "minimize_on_close", .new = "background_on_close"},
-        {.old = "start_in_tray", .new = "start_in_background"},
-        {.old = "tray_notifs_interval", .new = "bg_notifs_interval"},
-        {.old = "tray_refresh_interval", .new = "bg_refresh_interval"},
-        {.old = "refresh_workers", .new = "max_connections"},
-    }));
 
 void db_load_settings(Db* db, Settings* settings) {
     int32_t res;
