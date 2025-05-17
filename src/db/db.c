@@ -98,6 +98,9 @@ Db* db_init(void) {
         return NULL;
     }
 
+    // TODO: make note somewhere that legacy json and ini config (pre v9.0) are no longer migrated,
+    // need v11.x to migrate to sqlite3 from those legacy configs, then this will work fine
+
     db->name = strdup(sqlite3_db_name(db->conn, 0));
 
     // Use WAL mode for more efficient writes
