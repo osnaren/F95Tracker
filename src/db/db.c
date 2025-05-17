@@ -8,9 +8,19 @@
 
 #define DB_FILE "temp.sqlite3" // TODO: change when its ready
 
+typedef struct {
+    enum {
+        DbMessageType_Quit,
+    } type;
+} DbMessage;
+
+M_BUFFER_DEF(DbMessageQueue, DbMessage, 100, M_BUFFER_QUEUE, M_POD_OPLIST)
+
 struct Db {
     sqlite3* conn;
     const char* name;
+    m_thread_t thread;
+    DbMessageQueue_t queue;
 };
 
 typedef struct {
@@ -58,6 +68,20 @@ static void db_perror(Db* db, const char* s) {
     }                              \
     assert(res == exp)
 
+void db_thread(void* ctx) {
+    Db* db = ctx;
+    bool quit = false;
+
+    DbMessage message;
+    while(DbMessageQueue_pop_blocking(&message, db->queue, !quit)) {
+        switch(message.type) {
+        case DbMessageType_Quit:
+            quit = true;
+            break;
+        }
+    }
+}
+
 Db* db_init(void) {
     Db* db = malloc(sizeof(Db));
     int32_t res;
@@ -83,6 +107,8 @@ Db* db_init(void) {
     // Consolidate WAL into DB every 100 frames, usually means ~100 write operations
     res = sqlite3_wal_autocheckpoint(db->conn, 100);
     db_assert(db, res, SQLITE_OK, "sqlite3_wal_autocheckpoint()");
+
+    m_thread_create(db->thread, db_thread, db);
 
     return db;
 }
@@ -444,6 +470,12 @@ void db_load_settings(Db* db, Settings* settings) {
 }
 
 void db_free(Db* db) {
+    DbMessage message = {
+        .type = DbMessageType_Quit,
+    };
+    DbMessageQueue_push(db->queue, message);
+    m_thread_join(db->thread);
+
     free((char*)db->name);
     sqlite3_close(db->conn);
     free(db);
