@@ -60,10 +60,11 @@ static void db_perror(Db* db, const char* s) {
 
 Db* db_init(void) {
     Db* db = malloc(sizeof(Db));
+    int32_t res;
 
     Path* path = path_init_data_dir();
     path_join(path, DB_FILE);
-    int32_t res = sqlite3_open(path_cstr(path), &db->conn);
+    res = sqlite3_open(path_cstr(path), &db->conn);
     path_free(path);
 
     if(res != SQLITE_OK) {
@@ -74,6 +75,14 @@ Db* db_init(void) {
     }
 
     db->name = strdup(sqlite3_db_name(db->conn, 0));
+
+    // Use WAL mode for more efficient writes
+    res = sqlite3_exec(db->conn, "PRAGMA journal_mode=WAL", NULL, NULL, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
+
+    // Consolidate WAL into DB every 100 frames, usually means ~100 write operations
+    res = sqlite3_wal_autocheckpoint(db->conn, 100);
+    db_assert(db, res, SQLITE_OK, "sqlite3_wal_autocheckpoint()");
 
     return db;
 }
