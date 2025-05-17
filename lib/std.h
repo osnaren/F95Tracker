@@ -82,6 +82,9 @@ typedef long double flt128_t;
 #define UNUSED(X) (void)(X)
 #endif
 
+#define STR(x)  #x
+#define XSTR(x) STR(x)
+
 static inline void custom_perror(const char* s, const char* e) {
     fprintf(stderr, "%s: %s\n", s, e);
 }

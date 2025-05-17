@@ -232,16 +232,6 @@ class Datestamp(Timestamp):
         return globals.settings.datestamp_format
 
 
-class DefaultStyle:
-    accent        = "#d4202e"
-    alt_bg        = "#101010"
-    bg            = "#0a0a0a"
-    border        = "#454545"
-    corner_radius = 6
-    text          = "#ffffff"
-    text_dim      = "#808080"
-
-
 @dataclasses.dataclass(slots=True)
 class ThreadMatch:
     title: str

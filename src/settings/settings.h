@@ -68,6 +68,14 @@ typedef struct {
 } TimelineEventTypeInfo;
 extern const TimelineEventTypeInfo timeline_event_type[];
 
+#define DEFAULT_STYLE_ACCENT_HEX    "#d4202e"
+#define DEFAULT_STYLE_ALT_BG_HEX    "#101010"
+#define DEFAULT_STYLE_BG_HEX        "#0a0a0a"
+#define DEFAULT_STYLE_BORDER_HEX    "#454545"
+#define DEFAULT_STYLE_CORNER_RADIUS 6
+#define DEFAULT_STYLE_TEXT_HEX      "#ffffff"
+#define DEFAULT_STYLE_TEXT_DIM_HEX  "#808080"
+
 typedef struct {
     bool background_on_close;
     int32_t bg_notifs_interval;
