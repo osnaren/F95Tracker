@@ -19,4 +19,7 @@ void path_join(Path* path, const char* join);
 bool path_is_file(Path* path);
 bool path_is_dir(Path* path);
 bool path_mkdir(Path* path, bool recursive);
+bool path_read(Path* path, m_bstring_t* bytes);
+bool path_write(Path* path, m_bstring_t* bytes);
+bool path_write_raw(Path* path, const void* bytes, size_t count);
 void path_free(Path* path);

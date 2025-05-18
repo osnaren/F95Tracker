@@ -96,7 +96,7 @@ bool path_is_file(Path* path) {
         }
         return false;
     }
-    return S_ISREG(st.st_mode);
+    return !S_ISDIR(st.st_mode);
 }
 
 bool path_is_dir(Path* path) {
@@ -139,6 +139,50 @@ bool path_mkdir(Path* path, bool recursive) {
     }
 
     return ret;
+}
+
+bool path_read(Path* path, m_bstring_t* bytes) {
+    struct stat st;
+    int32_t res = stat(path_cstr(path), &st);
+    if(res != 0) {
+        assert(res == -1);
+        perror(path_cstr(path));
+        return NULL;
+    }
+    if(S_ISDIR(st.st_mode)) {
+        return NULL;
+    }
+
+    FILE* file = fopen(path_cstr(path), "r");
+    if(file == NULL) {
+        perror(path_cstr(path));
+        return NULL;
+    }
+
+    bool read = m_bstring_fread(*bytes, file, st.st_size);
+    fclose(file);
+
+    return read;
+}
+
+bool path_write(Path* path, m_bstring_t* bytes) {
+    return path_write_raw(
+        path,
+        m_bstring_view(*bytes, 0, m_bstring_size(*bytes)),
+        m_bstring_size(*bytes));
+}
+
+bool path_write_raw(Path* path, const void* data, size_t size) {
+    FILE* file = fopen(path_cstr(path), "w");
+    if(file == NULL) {
+        perror(path_cstr(path));
+        return false;
+    }
+
+    size_t wrote = fwrite(data, 1, size, file);
+    fclose(file);
+
+    return wrote == size;
 }
 
 void path_free(Path* path) {
