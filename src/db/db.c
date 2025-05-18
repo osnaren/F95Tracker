@@ -1,4 +1,5 @@
 #include "db.h"
+#include "app.h"
 #include "path/path.h"
 
 #include <sqlite3/sqlite3.h>
@@ -13,6 +14,7 @@
 typedef struct {
     enum {
         DbMessageType_Quit,
+        DbMessageType_Backup,
         DbMessageType_SaveSettings,
     } type;
     union {
@@ -117,6 +119,59 @@ Db* db_init(void) {
     m_thread_create(db->thread, db_thread, db);
 
     return db;
+}
+
+void db_backup(Db* db) {
+    const DbMessage message = {
+        .type = DbMessageType_Backup,
+    };
+    DbMessageQueue_push(db->queue, message);
+}
+
+static void db_append_backup_id(m_string_t* str) {
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    struct tm* tp = localtime(&ts.tv_sec);
+    m_string_t id_str;
+    m_string_init_printf(
+        id_str,
+        "_v%s_%04d%02d%02d_%02d%02d%02d_%d",
+        app.version,
+        tp->tm_year + 1900,
+        tp->tm_mon + 1,
+        tp->tm_mday,
+        tp->tm_hour,
+        tp->tm_min,
+        tp->tm_sec,
+        ts.tv_nsec);
+    m_string_replace_all_cstr(id_str, ".", "");
+    m_string_cat(*str, id_str);
+    m_string_clear(id_str);
+}
+
+static void db_do_backup(Db* db) {
+    int32_t res;
+
+    res = sqlite3_wal_checkpoint_v2(db->conn, db->name, SQLITE_CHECKPOINT_TRUNCATE, NULL, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_wal_checkpoint_v2()");
+
+    Path* backup = path_dup(db->path);
+    m_string_t name;
+    m_string_init_set(name, path_name(backup));
+    db_append_backup_id(&name);
+    path_set_name(backup, m_string_get_cstr(name));
+    m_string_clear(name);
+
+    m_bstring_t bytes;
+    m_bstring_init(bytes);
+    if(path_read(db->path, &bytes) && path_write(backup, &bytes)) {
+        printf("Saved DB backup: %s\n", path_cstr(backup));
+    } else {
+        custom_perror(path_cstr(backup), "DB backup failed");
+    }
+    m_bstring_clear(bytes);
+
+    path_free(backup);
 }
 
 static void db_append_column_spec(m_string_t* sql, const DbColumn* column) {
@@ -283,10 +338,9 @@ static void db_create_table(Db* db, const DbTable* table) {
     db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
 
     if(recreate) {
-        struct timespec ts;
-        timespec_get(&ts, TIME_UTC);
         m_string_t table_temp;
-        m_string_init_printf(table_temp, "%s_temp_%zzu_%zzu", table->name, ts.tv_sec, ts.tv_nsec);
+        m_string_init_printf(table_temp, "%s_temp", table->name);
+        db_append_backup_id(&table_temp);
 
         m_string_printf(
             sql,
@@ -334,11 +388,7 @@ void db_load_settings(Db* db, Settings* settings) {
 
     // Read the main settings row
     m_string_set(sql, "SELECT ");
-    for(size_t col = 0; col < settings_table.columns_count; col++) {
-        m_string_cat(sql, settings_table.columns[col].name);
-        m_string_cat(sql, ",");
-    }
-    m_string_strim(sql, ",");
+    db_append_column_names(&sql, &settings_table);
     m_string_cat_printf(sql, " FROM %s", settings_table.name);
 
     sqlite3_stmt* stmt;
@@ -752,6 +802,9 @@ void db_thread(void* ctx) {
         switch(message.type) {
         case DbMessageType_Quit:
             quit = true;
+            break;
+        case DbMessageType_Backup:
+            db_do_backup(db);
             break;
         case DbMessageType_SaveSettings:
             db_do_save_settings(db, message.save_settings.ptr, message.save_settings.column);
