@@ -33,6 +33,7 @@ struct Db {
     const char* name;
     m_thread_t thread;
     DbMessageQueue_t queue;
+    bool did_migration_backup;
 };
 
 typedef struct {
@@ -115,6 +116,7 @@ Db* db_init(void) {
     db_assert(db, res, SQLITE_OK, "sqlite3_wal_autocheckpoint()");
 
     // FIXME: move table loading to thread
+    db->did_migration_backup = false;
     DbMessageQueue_init(db->queue, 100);
     m_thread_create(db->thread, db_thread, db);
 
@@ -198,6 +200,20 @@ static void db_append_column_names(m_string_t* sql, const DbTable* table) {
     m_string_strim(*sql, ",");
 }
 
+static void db_migration_prelude(Db* db, const char* format, ...) {
+    if(!db->did_migration_backup) {
+        printf("Saving DB backup before schema migration...\n");
+        db_do_backup(db);
+        db->did_migration_backup = true;
+    }
+    printf("DB schema migration: ");
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+    printf("\n");
+}
+
 static void db_create_table(Db* db, const DbTable* table) {
     int32_t res;
     m_string_t sql;
@@ -217,8 +233,6 @@ static void db_create_table(Db* db, const DbTable* table) {
     res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
 
-    // TODO: make backup if migration is needed
-
     // Rename columns
     for(size_t ren = 0; ren < table->renames_count; ren++) {
         const DbRename* rename = &table->renames[ren];
@@ -235,6 +249,13 @@ static void db_create_table(Db* db, const DbTable* table) {
         if(res == SQLITE_ERROR) {
             continue; // Doesn't exist, nothing to rename
         }
+        db_migration_prelude(
+            db,
+            "Renaming '%s.%s' to '%s.%s'",
+            table->name,
+            rename->old,
+            table->name,
+            rename->new);
 
         m_string_printf(
             sql,
@@ -262,6 +283,7 @@ static void db_create_table(Db* db, const DbTable* table) {
         if(res == SQLITE_OK) {
             continue; // Already exists, nothing to add
         }
+        db_migration_prelude(db, "Adding '%s.%s'", table->name, column->name);
 
         m_string_printf(sql, "ALTER TABLE %s ADD COLUMN ", table->name);
         db_append_column_spec(&sql, column);
@@ -288,6 +310,7 @@ static void db_create_table(Db* db, const DbTable* table) {
         if(is_known) {
             continue; // Should exist, nothing to remove
         }
+        db_migration_prelude(db, "Removing '%s.%s'", table->name, found_column);
 
         m_string_printf(sql, "ALTER TABLE %s DROP COLUMN %s", table->name, found_column);
         res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
@@ -338,6 +361,8 @@ static void db_create_table(Db* db, const DbTable* table) {
     db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
 
     if(recreate) {
+        db_migration_prelude(db, "Recreating '%s' table with new types/defaults", table->name);
+
         m_string_t table_temp;
         m_string_init_printf(table_temp, "%s_temp", table->name);
         db_append_backup_id(&table_temp);
