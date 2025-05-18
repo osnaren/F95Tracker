@@ -17,6 +17,7 @@ typedef struct {
         DbMessageType_Backup,
         DbMessageType_SaveSettings,
     } type;
+    m_eflag_t* eflag;
     union {
         struct {
             const Settings* ptr;
@@ -84,7 +85,7 @@ static void db_perror(Db* db, const char* s) {
     }                              \
     assert(res == exp)
 
-void db_thread(void* ctx);
+static void db_thread(void* ctx);
 
 Db* db_init(void) {
     Db* db = malloc(sizeof(Db));
@@ -124,10 +125,15 @@ Db* db_init(void) {
 }
 
 void db_backup(Db* db) {
+    m_eflag_t eflag;
+    m_eflag_init(eflag);
     const DbMessage message = {
         .type = DbMessageType_Backup,
+        .eflag = &eflag,
     };
     DbMessageQueue_push(db->queue, message);
+    m_eflag_wait(eflag);
+    m_eflag_clear(eflag);
 }
 
 static void db_append_backup_id(m_string_t* str) {
@@ -818,7 +824,7 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
     m_string_clear(sql);
 }
 
-void db_thread(void* ctx) {
+static void db_thread(void* ctx) {
     Db* db = ctx;
     bool quit = false;
 
@@ -834,6 +840,9 @@ void db_thread(void* ctx) {
         case DbMessageType_SaveSettings:
             db_do_save_settings(db, message.save_settings.ptr, message.save_settings.column);
             break;
+        }
+        if(message.eflag != NULL) {
+            m_eflag_broadcast(*message.eflag);
         }
     }
 }

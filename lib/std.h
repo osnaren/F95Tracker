@@ -86,6 +86,31 @@ typedef long double flt128_t;
 #define STR(x)  #x
 #define XSTR(x) STR(x)
 
+typedef struct {
+    m_mutex_t mutex;
+    m_cond_t cond;
+} m_eflag_s;
+
+typedef m_eflag_s m_eflag_t[1];
+
+static inline void m_eflag_init(m_eflag_t eflag) {
+    m_mutex_init(eflag->mutex);
+    m_cond_init(eflag->cond);
+}
+
+static inline void m_eflag_wait(m_eflag_t eflag) {
+    m_cond_wait(eflag->cond, eflag->mutex);
+}
+
+static inline void m_eflag_broadcast(m_eflag_t eflag) {
+    m_cond_broadcast(eflag->cond);
+}
+
+static inline void m_eflag_clear(m_eflag_t eflag) {
+    m_mutex_clear(eflag->mutex);
+    m_cond_clear(eflag->cond);
+}
+
 static inline void custom_perror(const char* s, const char* e) {
     fprintf(stderr, "%s: %s\n", s, e);
 }
