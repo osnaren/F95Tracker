@@ -13,7 +13,7 @@
 typedef struct {
     enum {
         DbMessageType_Quit,
-        DbMessageType_UpdateSettings,
+        DbMessageType_SaveSettings,
     } type;
     union {
         struct {
@@ -458,7 +458,7 @@ void db_load_settings(Db* db, Settings* settings) {
 
 void db_save_settings(Db* db, const Settings* settings, SettingsColumn column) {
     const DbMessage message = {
-        .type = DbMessageType_UpdateSettings,
+        .type = DbMessageType_SaveSettings,
         .save_settings =
             {
                 .ptr = settings,
@@ -751,7 +751,7 @@ void db_thread(void* ctx) {
         case DbMessageType_Quit:
             quit = true;
             break;
-        case DbMessageType_UpdateSettings:
+        case DbMessageType_SaveSettings:
             db_do_save_settings(db, message.save_settings.ptr, message.save_settings.column);
             break;
         }
