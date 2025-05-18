@@ -26,6 +26,7 @@ typedef struct {
 M_BUFFER_DEF(DbMessageQueue, DbMessage, 100, M_BUFFER_QUEUE, M_POD_OPLIST)
 
 struct Db {
+    Path* path;
     sqlite3* conn;
     const char* name;
     m_thread_t thread;
@@ -86,14 +87,14 @@ Db* db_init(void) {
     Db* db = malloc(sizeof(Db));
     int32_t res;
 
-    Path* path = path_init_data_dir();
-    path_join(path, DB_FILE);
-    res = sqlite3_open(path_cstr(path), &db->conn);
-    path_free(path);
+    db->path = path_init_data_dir();
+    path_join(db->path, DB_FILE);
+    res = sqlite3_open(path_cstr(db->path), &db->conn);
 
     if(res != SQLITE_OK) {
         db_perror(db, "sqlite3_open()");
         sqlite3_close(db->conn);
+        path_free(db->path);
         free(db);
         return NULL;
     }
@@ -112,6 +113,7 @@ Db* db_init(void) {
     db_assert(db, res, SQLITE_OK, "sqlite3_wal_autocheckpoint()");
 
     // FIXME: move table loading to thread
+    DbMessageQueue_init(db->queue, 100);
     m_thread_create(db->thread, db_thread, db);
 
     return db;
@@ -764,8 +766,10 @@ void db_free(Db* db) {
     };
     DbMessageQueue_push(db->queue, message);
     m_thread_join(db->thread);
+    DbMessageQueue_clear(db->queue);
 
     free((char*)db->name);
     sqlite3_close(db->conn);
+    path_free(db->path);
     free(db);
 }
