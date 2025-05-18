@@ -111,6 +111,7 @@ Db* db_init(void) {
     res = sqlite3_wal_autocheckpoint(db->conn, 100);
     db_assert(db, res, SQLITE_OK, "sqlite3_wal_autocheckpoint()");
 
+    // FIXME: move table loading to thread
     m_thread_create(db->thread, db_thread, db);
 
     return db;
@@ -132,10 +133,19 @@ static void db_append_column_spec(m_string_t* sql, const DbColumn* column) {
     }
 }
 
+static void db_append_column_names(m_string_t* sql, const DbTable* table) {
+    for(size_t col = 0; col < table->columns_count; col++) {
+        m_string_cat(*sql, table->columns[col].name);
+        m_string_cat(*sql, ",");
+    }
+    m_string_strim(*sql, ",");
+}
+
 static void db_create_table(Db* db, const DbTable* table) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
+    sqlite3_stmt* stmt;
 
     // Create table
     m_string_printf(sql, "CREATE TABLE IF NOT EXISTS %s (", table->name);
@@ -204,7 +214,6 @@ static void db_create_table(Db* db, const DbTable* table) {
 
     // Remove columns
     m_string_printf(sql, "PRAGMA table_info(%s)", table->name);
-    sqlite3_stmt* stmt;
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
 
@@ -231,7 +240,76 @@ static void db_create_table(Db* db, const DbTable* table) {
     res = sqlite3_finalize(stmt);
     db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
 
-    // TODO: update column defs eg change type, default, etc...
+    // Update column defs
+    m_string_printf(sql, "PRAGMA table_info(%s)", table->name);
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    bool recreate = false;
+    while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
+        db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+        const char* found_column = sqlite3_column_text(stmt, 1);
+        const DbColumn* column = NULL;
+        for(size_t col = 0; col < table->columns_count; col++) {
+            const DbColumn* known_column = &table->columns[col];
+            if(strcmp(known_column->name, found_column) == 0) {
+                column = known_column;
+                break;
+            }
+        }
+        assert(column != NULL);
+
+        const char* found_type = sqlite3_column_text(stmt, 2);
+        const char* found_dflt = sqlite3_column_text(stmt, 4);
+        bool changed_type = (column->type == NULL) != (found_type == NULL);
+        bool changed_dflt = (column->dflt == NULL) != (found_dflt == NULL);
+        if(column->type != NULL && found_type != NULL) {
+            changed_type = strcasecmp(column->type, found_type) != 0;
+        }
+        if(column->dflt != NULL && found_dflt != NULL) {
+            changed_type = strcasecmp(column->dflt, found_dflt) != 0;
+        }
+        bool changed_primary_key = column->primary_key != (sqlite3_column_int(stmt, 5) != 0);
+
+        if(changed_type || changed_dflt || changed_primary_key) {
+            recreate = true;
+            break;
+        }
+    }
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    if(recreate) {
+        struct timespec ts;
+        timespec_get(&ts, TIME_UTC);
+        m_string_t table_temp;
+        m_string_init_printf(table_temp, "%s_temp_%zzu_%zzu", table->name, ts.tv_sec, ts.tv_nsec);
+
+        m_string_printf(
+            sql,
+            "ALTER TABLE %s RENAME TO %s",
+            table->name,
+            m_string_get_cstr(table_temp));
+        res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
+        db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
+
+        db_create_table(db, table);
+
+        m_string_printf(sql, "INSERT INTO %s (", table->name);
+        db_append_column_names(&sql, table);
+        m_string_cat(sql, ") SELECT ");
+        db_append_column_names(&sql, table);
+        m_string_cat_printf(sql, " FROM %s", m_string_get_cstr(table_temp));
+        res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
+        db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
+
+        m_string_printf(sql, "DROP TABLE %s", m_string_get_cstr(table_temp));
+        res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
+        db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
+
+        m_string_clear(table_temp);
+    }
 
     m_string_clear(sql);
 }
