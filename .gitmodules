@@ -19,6 +19,9 @@
 [submodule "lib/vendor/cwalk"]
 	path = lib/vendor/cwalk
 	url = https://github.com/likle/cwalk.git
+[submodule "lib/vendor/json-c"]
+	path = lib/vendor/json-c
+	url = https://github.com/json-c/json-c.git
 [submodule "lib/vendor/bc7e"]
 	path = lib/vendor/bc7e
 	url = https://github.com/BinomialLLC/bc7e.git

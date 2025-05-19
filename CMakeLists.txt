@@ -24,6 +24,7 @@ set(CURL_DIR "${VENDOR_DIR}/curl")
 set(CWALK_DIR "${VENDOR_DIR}/cwalk")
 set(IMGUI_DIR "${VENDOR_DIR}/imgui")
 set(DCIMGUI_DIR "${LIB_DIR}/dcimgui")
+set(JSONC_DIR "${VENDOR_DIR}/json-c")
 set(SQLITE3_DIR "${VENDOR_DIR}/sqlite3")
 set(DEARBINDINGS_DIR "${VENDOR_DIR}/dear_bindings")
 
@@ -128,6 +129,10 @@ target_compile_definitions(F95Checker PRIVATE M_USE_SMALL_NAME=0)  # Disable leg
 # cwalk
 add_subdirectory("${CWALK_DIR}" EXCLUDE_FROM_ALL)
 target_link_libraries(F95Checker PRIVATE cwalk)
+
+# json-c
+add_subdirectory("${JSONC_DIR}" EXCLUDE_FROM_ALL)
+target_link_libraries(F95Checker PRIVATE json-c)
 
 # cURL
 if(F95CHECKER_VENDORED_CURL)
