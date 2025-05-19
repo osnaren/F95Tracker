@@ -491,14 +491,38 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     settings->confirm_on_remove = sqlite3_column_int(stmt, col++);
     settings->copy_urls_as_bbcode = sqlite3_column_int(stmt, col++);
     m_string_set(settings->datestamp_format, sqlite3_column_text(stmt, col++));
-    // settings->default_exe_dir = sqlite3_column_int(stmt, column_i++);
-    col++;
+
+    const char* default_exe_dir_text = sqlite3_column_text(stmt, col++);
+    if(default_exe_dir_text[0] == '{') {
+        json_object* default_exe_dir_json = json_tokener_parse(default_exe_dir_text);
+        for(Os os = Os_min(); os <= Os_max(); os++) {
+            char os_key[2];
+            snprintf(os_key, sizeof(os_key), "%d", os);
+            json_object* default_exe_dir = json_object_object_get(default_exe_dir_json, os_key);
+            if(!json_object_is_type(default_exe_dir, json_type_string)) continue;
+            path_set(settings->default_exe_dir[os], json_object_get_string(default_exe_dir));
+        }
+        json_object_put(default_exe_dir_json);
+    } else {
+        path_set(settings->default_exe_dir[app.os], default_exe_dir_text);
+    }
+
     settings->default_tab_is_new = sqlite3_column_int(stmt, col++);
     settings->display_mode = sqlite3_column_int(stmt, col++);
     // settings->display_tab = sqlite3_column_int(stmt, column_i++);
     col++;
-    // settings->downloads_dir = sqlite3_column_int(stmt, column_i++);
-    col++;
+
+    const char* downloads_dir_text = sqlite3_column_text(stmt, col++);
+    json_object* downloads_dir_json = json_tokener_parse(downloads_dir_text);
+    for(Os os = Os_min(); os <= Os_max(); os++) {
+        char os_key[2];
+        snprintf(os_key, sizeof(os_key), "%d", os);
+        json_object* downloads_dir = json_object_object_get(downloads_dir_json, os_key);
+        if(!json_object_is_type(downloads_dir, json_type_string)) continue;
+        path_set(settings->downloads_dir[os], json_object_get_string(downloads_dir));
+    }
+    json_object_put(downloads_dir_json);
+
     settings->ext_background_add = sqlite3_column_int(stmt, col++);
     settings->ext_highlight_tags = sqlite3_column_int(stmt, col++);
     settings->ext_icon_glow = sqlite3_column_int(stmt, col++);
@@ -570,13 +594,6 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
 
     m_string_clear(sql);
-
-    // FIXME: handle migration when loading this field
-    // def __post_init__(self):
-    //     if "" in self.default_exe_dir:
-    //     from modules import globals
-    //     self.default_exe_dir[globals.os] = self.default_exe_dir[""]
-    //     del self.default_exe_dir[""]
 }
 
 void db_save_settings(Db* db, const Settings* settings, SettingsColumn column) {
@@ -653,7 +670,19 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
         res = sqlite3_bind_mstring(stmt, 1, settings->datestamp_format);
         break;
     case SettingsColumn_default_exe_dir:
-        // res = sqlite3_bind_int(stmt, 1, settings->default_exe_dir);
+        json_object* default_exe_dir_json = json_object_new_object();
+        for(Os os = Os_min(); os <= Os_max(); os++) {
+            if(path_is_empty(settings->default_exe_dir[os])) continue;
+            char os_key[2];
+            snprintf(os_key, sizeof(os_key), "%d", os);
+            json_object_object_add(
+                default_exe_dir_json,
+                os_key,
+                json_object_new_string(path_cstr(settings->default_exe_dir[os])));
+        }
+        const char* default_exe_dir_text = json_object_to_json_string(default_exe_dir_json);
+        res = sqlite3_bind_text(stmt, 1, default_exe_dir_text, -1, SQLITE_TRANSIENT);
+        json_object_put(default_exe_dir_json);
         break;
     case SettingsColumn_default_tab_is_new:
         res = sqlite3_bind_int(stmt, 1, settings->default_tab_is_new);
@@ -665,7 +694,19 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
         // res = sqlite3_bind_int(stmt, 1, settings->display_tab);
         break;
     case SettingsColumn_downloads_dir:
-        // res = sqlite3_bind_int(stmt, 1, settings->downloads_dir);
+        json_object* downloads_dir_json = json_object_new_object();
+        for(Os os = Os_min(); os <= Os_max(); os++) {
+            if(path_is_empty(settings->downloads_dir[os])) continue;
+            char os_key[2];
+            snprintf(os_key, sizeof(os_key), "%d", os);
+            json_object_object_add(
+                downloads_dir_json,
+                os_key,
+                json_object_new_string(path_cstr(settings->downloads_dir[os])));
+        }
+        const char* downloads_dir_text = json_object_to_json_string(downloads_dir_json);
+        res = sqlite3_bind_text(stmt, 1, downloads_dir_text, -1, SQLITE_TRANSIENT);
+        json_object_put(downloads_dir_json);
         break;
     case SettingsColumn_ext_background_add:
         res = sqlite3_bind_int(stmt, 1, settings->ext_background_add);

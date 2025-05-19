@@ -16,6 +16,7 @@ void path_set_extension(Path* path, const char* extension);
 void path_normalize(Path* path);
 void path_parent(Path* path);
 void path_join(Path* path, const char* join);
+bool path_is_empty(Path* path);
 bool path_is_file(Path* path);
 bool path_is_dir(Path* path);
 bool path_mkdir(Path* path, bool recursive);

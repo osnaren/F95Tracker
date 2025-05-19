@@ -86,6 +86,10 @@ void path_join(Path* path, const char* join) {
     m_string_set(path->str, path_buf);
 }
 
+bool path_is_empty(Path* path) {
+    return m_string_empty_p(path->str);
+}
+
 bool path_is_file(Path* path) {
     struct stat st;
     int32_t res = stat(path_cstr(path), &st);

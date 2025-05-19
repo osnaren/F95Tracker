@@ -1,5 +1,7 @@
 #pragma once
 
+#include "path/path.h"
+
 #include <dcimgui/dcimgui.h>
 #include <smart_enum/smart_enum.h>
 #include <std.h>
@@ -92,11 +94,11 @@ typedef struct {
     bool confirm_on_remove;
     bool copy_urls_as_bbcode;
     m_string_t datestamp_format;
-    // dict[Os, str] default_exe_dir;
+    Path* default_exe_dir[1 + Os_COUNT];
     bool default_tab_is_new;
     DisplayMode display_mode;
     // Tab.get display_tab;
-    // dict[Os, str] downloads_dir;
+    Path* downloads_dir[1 + Os_COUNT];
     bool ext_background_add;
     bool ext_highlight_tags;
     bool ext_icon_glow;

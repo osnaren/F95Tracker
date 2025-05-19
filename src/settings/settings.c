@@ -139,6 +139,12 @@ Settings* settings_init(void) {
     m_string_init(settings->browser_custom_arguments);
     m_string_init(settings->browser_custom_executable);
     m_string_init(settings->datestamp_format);
+    for(Os os = Os_min(); os <= Os_max(); os++) {
+        settings->default_exe_dir[os] = path_init("");
+    }
+    for(Os os = Os_min(); os <= Os_max(); os++) {
+        settings->downloads_dir[os] = path_init("");
+    }
     m_string_init(settings->proxy_host);
     m_string_init(settings->proxy_username);
     m_string_init(settings->proxy_password);
@@ -154,6 +160,12 @@ void settings_free(Settings* settings) {
     m_string_clear(settings->browser_custom_arguments);
     m_string_clear(settings->browser_custom_executable);
     m_string_clear(settings->datestamp_format);
+    for(Os os = Os_min(); os <= Os_max(); os++) {
+        path_free(settings->default_exe_dir[os]);
+    }
+    for(Os os = Os_min(); os <= Os_max(); os++) {
+        path_free(settings->downloads_dir[os]);
+    }
     m_string_clear(settings->proxy_host);
     m_string_clear(settings->proxy_username);
     m_string_clear(settings->proxy_password);
