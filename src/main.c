@@ -2,6 +2,13 @@
 
 App app = {
     .version = F95CHECKER_VERSION,
+#if OS == OS_WINDOWS
+    .os = Os_Windows,
+#elif OS == OS_LINUX
+    .os = Os_Linux,
+#elif OS == OS_MACOS
+    .os = Os_MacOS,
+#endif
 };
 
 int32_t main(int32_t argc, char** argv) {

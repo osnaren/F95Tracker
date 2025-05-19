@@ -24,6 +24,19 @@
 #include <unistd.h>
 // IWYU pragma: end_exports
 
+#define OS_WINDOWS 1
+#define OS_LINUX   2
+#define OS_MACOS   3
+#if defined(_WIN32)
+#define OS OS_WINDOWS
+#elif defined(linux) || defined(__linux) || defined(__linux__)
+#define OS OS_LINUX
+#elif defined(__APPLE__)
+#define OS OS_MACOS
+#else
+#error "Platform not supported!"
+#endif
+
 static_assert(
     sizeof(float) * CHAR_BIT == 32,
     "float is not 32 bit on this architecture, fix the f32 typedef.");

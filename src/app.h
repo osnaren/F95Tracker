@@ -6,6 +6,7 @@
 
 typedef struct {
     const char* version;
+    Os os;
     Db* db;
     Gui* gui;
     Settings* settings;
