@@ -414,7 +414,9 @@ static ImColor sqlite3_column_imcolor(sqlite3_stmt* stmt, int32_t col) {
     const char* hex_color = sqlite3_column_text(stmt, col);
     uint8_t r, g, b;
     int32_t res = sscanf(hex_color, "#%02hhx%02hhx%02hhx", &r, &g, &b);
-    assert(res == 3);
+    if(res != 3) {
+        r = g = b = 255;
+    }
     ImColor im_color = {{
         .x = (flt32_t)r / 255,
         .y = (flt32_t)g / 255,
@@ -430,7 +432,9 @@ static int32_t sqlite3_bind_imcolor(sqlite3_stmt* stmt, int32_t param, ImColor i
     uint8_t b = im_color.Value.z * 255;
     char hex_color[8];
     int32_t res = snprintf(hex_color, sizeof(hex_color), "#%02hhx%02hhx%02hhx", r, g, b);
-    assert(res == sizeof(hex_color) - 1);
+    if(res != sizeof(hex_color) - 1) {
+        strlcpy(hex_color, "#FFFFFF", sizeof(hex_color));
+    }
     return sqlite3_bind_text(stmt, param, hex_color, -1, SQLITE_TRANSIENT);
 }
 
