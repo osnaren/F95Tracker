@@ -40,8 +40,8 @@ endif()
 add_compile_options(-Werror)  # Fail on any warning
 
 # Build vendored libs statically
-set(BUILD_STATIC_LIBS ON)
-set(BUILD_SHARED_LIBS OFF)
+set(BUILD_STATIC_LIBS ON CACHE BOOL "ALL STATIC")
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "NO SHARED")
 
 # Global includes
 # Allows #include <dcimgui/dcimgui.h> instead of just #include <dcimgui.h>
