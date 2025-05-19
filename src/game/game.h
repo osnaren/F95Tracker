@@ -22,7 +22,7 @@ typedef struct {
     ImColor color;
     const char* icon;
 } GameStatusInfo;
-extern const GameStatusInfo game_status[];
+extern const GameStatusInfo game_status[1 + GameStatus_COUNT];
 
 #define _GameTag(_, $)             \
     _($, 2dGame, 1)                \
@@ -182,7 +182,7 @@ SMARTENUM_DECLARE(_GameTag, GameTag)
 typedef struct {
     const char* text;
 } GameTagInfo;
-extern const GameTagInfo game_tag[];
+extern const GameTagInfo game_tag[1 + GameTag_COUNT];
 
 #define _GameType(_, $) \
     _($, ADRIFT, 2)     \
@@ -220,7 +220,7 @@ typedef struct {
     ImColor color;
     GameCategory category;
 } GameTypeInfo;
-extern const GameTypeInfo game_type[];
+extern const GameTypeInfo game_type[1 + GameType_COUNT];
 
 typedef int32_t GameId;
 

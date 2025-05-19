@@ -5,7 +5,7 @@
 SMARTENUM_DEFINE(_GameCategory, GameCategory)
 
 SMARTENUM_DEFINE(_GameStatus, GameStatus)
-const GameStatusInfo game_status[] = {
+const GameStatusInfo game_status[1 + GameStatus_COUNT] = {
     [GameStatus_Normal] = {.color = {{0.95, 0.95, 0.95, 1.0}}, .icon = mdi_lightning_bolt_circle},
     [GameStatus_Completed] = {.color = {{0.0, 0.87, 0.0, 1.0}}, .icon = mdi_checkbox_marked_circle},
     [GameStatus_OnHold] = {.color = {{0.0, 0.5, 0.95, 1.0}}, .icon = mdi_pause_circle},
@@ -15,7 +15,7 @@ const GameStatusInfo game_status[] = {
 };
 
 SMARTENUM_DEFINE(_GameTag, GameTag)
-const GameTagInfo game_tag[] = {
+const GameTagInfo game_tag[1 + GameTag_COUNT] = {
     [GameTag_2dGame] = {.text = "2d game"},
     [GameTag_2dcg] = {.text = "2dcg"},
     [GameTag_3dGame] = {.text = "3d game"},
@@ -172,7 +172,7 @@ const GameTagInfo game_tag[] = {
 };
 
 SMARTENUM_DEFINE(_GameType, GameType)
-const GameTypeInfo game_type[] = {
+const GameTypeInfo game_type[1 + GameType_COUNT] = {
     [GameType_ADRIFT] = {.color = {{0.129, 0.588, 0.953, 1.0}}, .category = GameCategory_Games},
     [GameType_Flash] = {.color = {{0.38, 0.38, 0.38, 1.0}}, .category = GameCategory_Games},
     [GameType_HTML] = {.color = {{0.408, 0.624, 0.22, 1.0}}, .category = GameCategory_Games},

@@ -12,7 +12,7 @@ SMARTENUM_DECLARE(_DisplayMode, DisplayMode)
 typedef struct {
     const char* icon;
 } DisplayModeInfo;
-extern const DisplayModeInfo display_mode[];
+extern const DisplayModeInfo display_mode[1 + DisplayMode_COUNT];
 
 #define _Os(_, $)    \
     _($, Windows, 1) \
@@ -35,7 +35,7 @@ SMARTENUM_DECLARE(_TagHighlight, TagHighlight)
 typedef struct {
     ImColor color;
 } TagHighlightInfo;
-extern const TagHighlightInfo tag_highlight[];
+extern const TagHighlightInfo tag_highlight[1 + TagHighlight_COUNT];
 
 #define _TexCompress(_, $) \
     _($, Disabled, 1)      \
@@ -66,7 +66,7 @@ typedef struct {
     uint8_t args_min;
     const char* template;
 } TimelineEventTypeInfo;
-extern const TimelineEventTypeInfo timeline_event_type[];
+extern const TimelineEventTypeInfo timeline_event_type[1 + TimelineEventType_COUNT];
 
 #define DEFAULT_STYLE_ACCENT_HEX    "#d4202e"
 #define DEFAULT_STYLE_ALT_BG_HEX    "#101010"

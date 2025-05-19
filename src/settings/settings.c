@@ -3,7 +3,7 @@
 #include <fonts/mdi.h>
 
 SMARTENUM_DEFINE(_DisplayMode, DisplayMode)
-const DisplayModeInfo display_mode[] = {
+const DisplayModeInfo display_mode[1 + DisplayMode_COUNT] = {
     [DisplayMode_List] = {.icon = mdi_view_agenda_outline},
     [DisplayMode_Grid] = {.icon = mdi_view_grid_outline},
     [DisplayMode_Kanban] = {.icon = mdi_view_week_outline},
@@ -14,7 +14,7 @@ SMARTENUM_DEFINE(_Os, Os)
 SMARTENUM_DEFINE(_ProxyType, ProxyType)
 
 SMARTENUM_DEFINE(_TagHighlight, TagHighlight)
-const TagHighlightInfo tag_highlight[] = {
+const TagHighlightInfo tag_highlight[1 + TagHighlight_COUNT] = {
     [TagHighlight_Positive] = {.color = {{0.0, 0.6, 0.0, 1.0}}},
     [TagHighlight_Negative] = {.color = {{0.6, 0.0, 0.0, 1.0}}},
     [TagHighlight_Critical] = {.color = {{0.0, 0.0, 0.0, 1.0}}},
@@ -23,7 +23,7 @@ const TagHighlightInfo tag_highlight[] = {
 SMARTENUM_DEFINE(_TexCompress, TexCompress)
 
 SMARTENUM_DEFINE(_TimelineEventType, TimelineEventType)
-const TimelineEventTypeInfo timeline_event_type[] = {
+const TimelineEventTypeInfo timeline_event_type[1 + TimelineEventType_COUNT] = {
     // FIXME: update format specifiers for sprintf
     [TimelineEventType_GameAdded] =
         {
