@@ -410,6 +410,30 @@ static void db_create_table(Db* db, const DbTable* table) {
     m_string_clear(sql);
 }
 
+static ImColor sqlite3_column_imcolor(sqlite3_stmt* stmt, int32_t col) {
+    const char* hex_color = sqlite3_column_text(stmt, col);
+    uint8_t r, g, b;
+    int32_t res = sscanf(hex_color, "#%02hhx%02hhx%02hhx", &r, &g, &b);
+    assert(res == 3);
+    ImColor im_color = {{
+        .x = (flt32_t)r / 255,
+        .y = (flt32_t)g / 255,
+        .z = (flt32_t)b / 255,
+        .w = 1.0,
+    }};
+    return im_color;
+}
+
+static int32_t sqlite3_bind_imcolor(sqlite3_stmt* stmt, int32_t param, ImColor im_color) {
+    uint8_t r = im_color.Value.x * 255;
+    uint8_t g = im_color.Value.y * 255;
+    uint8_t b = im_color.Value.z * 255;
+    char hex_color[8];
+    int32_t res = snprintf(hex_color, sizeof(hex_color), "#%02hhx%02hhx%02hhx", r, g, b);
+    assert(res == sizeof(hex_color) - 1);
+    return sqlite3_bind_text(stmt, param, hex_color, -1, SQLITE_TRANSIENT);
+}
+
 void db_load_settings(Db* db, Settings* settings) {
     const DbMessage message = {
         .type = DbMessageType_LoadSettings,
@@ -522,19 +546,13 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     settings->software_webview = sqlite3_column_int(stmt, col++);
     settings->start_in_background = sqlite3_column_int(stmt, col++);
     settings->start_refresh = sqlite3_column_int(stmt, col++);
-    // settings->style_accent = sqlite3_column_int(stmt, column_i++);
-    col++;
-    // settings->style_alt_bg = sqlite3_column_int(stmt, column_i++);
-    col++;
-    // settings->style_bg = sqlite3_column_int(stmt, column_i++);
-    col++;
-    // settings->style_border = sqlite3_column_int(stmt, column_i++);
-    col++;
+    settings->style_accent = sqlite3_column_imcolor(stmt, col++);
+    settings->style_alt_bg = sqlite3_column_imcolor(stmt, col++);
+    settings->style_bg = sqlite3_column_imcolor(stmt, col++);
+    settings->style_border = sqlite3_column_imcolor(stmt, col++);
     settings->style_corner_radius = sqlite3_column_int(stmt, col++);
-    // settings->style_text = sqlite3_column_int(stmt, column_i++);
-    col++;
-    // settings->style_text_dim = sqlite3_column_int(stmt, column_i++);
-    col++;
+    settings->style_text = sqlite3_column_imcolor(stmt, col++);
+    settings->style_text_dim = sqlite3_column_imcolor(stmt, col++);
     settings->table_header_outside_list = sqlite3_column_int(stmt, col++);
     // settings->tags_highlights = sqlite3_column_int(stmt, column_i++);
     col++;
@@ -782,25 +800,25 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
         res = sqlite3_bind_int(stmt, 1, settings->start_refresh);
         break;
     case SettingsColumn_style_accent:
-        // res = sqlite3_bind_int(stmt, 1, settings->style_accent);
+        res = sqlite3_bind_imcolor(stmt, 1, settings->style_accent);
         break;
     case SettingsColumn_style_alt_bg:
-        // res = sqlite3_bind_int(stmt, 1, settings->style_alt_bg);
+        res = sqlite3_bind_imcolor(stmt, 1, settings->style_alt_bg);
         break;
     case SettingsColumn_style_bg:
-        // res = sqlite3_bind_int(stmt, 1, settings->style_bg);
+        res = sqlite3_bind_imcolor(stmt, 1, settings->style_bg);
         break;
     case SettingsColumn_style_border:
-        // res = sqlite3_bind_int(stmt, 1, settings->style_border);
+        res = sqlite3_bind_imcolor(stmt, 1, settings->style_border);
         break;
     case SettingsColumn_style_corner_radius:
         res = sqlite3_bind_int(stmt, 1, settings->style_corner_radius);
         break;
     case SettingsColumn_style_text:
-        // res = sqlite3_bind_int(stmt, 1, settings->style_text);
+        res = sqlite3_bind_imcolor(stmt, 1, settings->style_text);
         break;
     case SettingsColumn_style_text_dim:
-        // res = sqlite3_bind_int(stmt, 1, settings->style_text_dim);
+        res = sqlite3_bind_imcolor(stmt, 1, settings->style_text_dim);
         break;
     case SettingsColumn_table_header_outside_list:
         res = sqlite3_bind_int(stmt, 1, settings->table_header_outside_list);

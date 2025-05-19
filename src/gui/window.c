@@ -27,8 +27,12 @@ void gui_window_draw(Gui* gui) {
 
     ImGui_Text("Version: %s WIP", app.version);
 
+    ImGui_Spacing();
+
+    ImGui_Text("DB test/demo:");
+
     ImGui_AlignTextToFramePadding();
-    ImGui_Text("Browser Custom Arguments (DB test/demo):");
+    ImGui_Text("Browser Custom Arguments:");
     ImGui_SameLine();
     ImGui_SetNextItemWidth(690.0f);
     ImGui_InputTextMstring(
@@ -40,7 +44,7 @@ void gui_window_draw(Gui* gui) {
     }
 
     ImGui_AlignTextToFramePadding();
-    ImGui_Text("BG interval (DB test/demo):");
+    ImGui_Text("BG interval:");
     ImGui_SameLine();
     ImGui_SetNextItemWidth(100.0f);
     ImGui_DragIntEx(
@@ -53,6 +57,18 @@ void gui_window_draw(Gui* gui) {
         ImGuiSliderFlags_None);
     if(ImGui_IsItemDeactivatedAfterEdit()) {
         db_save_settings(app.db, app.settings, SettingsColumn_bg_refresh_interval);
+    }
+
+    ImGui_AlignTextToFramePadding();
+    ImGui_Text("Accent color:");
+    ImGui_SameLine();
+    ImGui_SetNextItemWidth(200.0f);
+    ImGui_ColorEdit3(
+        "###style_accent",
+        (flt32_t*)&app.settings->style_accent.Value,
+        ImGuiColorEditFlags_None);
+    if(ImGui_IsItemDeactivatedAfterEdit()) {
+        db_save_settings(app.db, app.settings, SettingsColumn_style_accent);
     }
 
     ImGui_End();
