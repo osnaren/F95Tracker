@@ -39,44 +39,6 @@ struct Db {
     bool did_migration_backup;
 };
 
-typedef struct {
-    const char* name;
-    const char* type;
-    const char* dflt;
-    bool primary_key;
-    bool autoincrement;
-    const char* extra;
-} DbColumn;
-
-typedef struct {
-    const char* old;
-    const char* new;
-} DbRename;
-
-typedef struct {
-    const char* name;
-    const DbColumn* columns;
-    size_t columns_count;
-    const DbRename* renames;
-    size_t renames_count;
-} DbTable;
-
-#define DB_COLUMN_ITEM(enum_name, column, ...)    [enum_name##_##column] = {#column, __VA_ARGS__},
-#define DB_RENAME_ITEM(empty, old_name, new_name) {.old = #old_name, .new = #new_name},
-#define DB_TABLE_DEFINE(TABLE_MACRO, table_name, enum_name) \
-    static const DbColumn _##table_name##_columns[] = {     \
-        TABLE_MACRO(enum_name, DB_COLUMN_ITEM, DB_EMPTY)};  \
-    static const DbRename _##table_name##_renames[] = {     \
-        TABLE_MACRO(DB_EMPTY, DB_EMPTY, DB_RENAME_ITEM)};   \
-    static const DbTable table_name##_table = {             \
-        .name = #table_name,                                \
-        .columns = _##table_name##_columns,                 \
-        .columns_count = COUNT_OF(_##table_name##_columns), \
-        .renames = _##table_name##_renames,                 \
-        .renames_count = COUNT_OF(_##table_name##_renames), \
-    };
-DB_TABLE_DEFINE(_SETTINGS, settings, SettingsColumn)
-
 static void db_perror(Db* db, const char* s) {
     custom_perror(s, sqlite3_errmsg(db->conn));
 }
@@ -138,13 +100,6 @@ static void db_send_message_blocking(Db* db, DbMessage message) {
     m_eflag_clear(eflag);
 }
 
-void db_backup(Db* db) {
-    const DbMessage message = {
-        .type = DbMessageType_Backup,
-    };
-    db_send_message_blocking(db, message);
-}
-
 static void db_append_backup_id(m_string_t* str) {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
@@ -164,6 +119,13 @@ static void db_append_backup_id(m_string_t* str) {
     m_string_replace_all_cstr(id_str, ".", "");
     m_string_cat(*str, id_str);
     m_string_clear(id_str);
+}
+
+void db_backup(Db* db) {
+    const DbMessage message = {
+        .type = DbMessageType_Backup,
+    };
+    db_send_message_blocking(db, message);
 }
 
 static void db_do_backup(Db* db) {
@@ -190,6 +152,44 @@ static void db_do_backup(Db* db) {
 
     path_free(backup);
 }
+
+typedef struct {
+    const char* name;
+    const char* type;
+    const char* dflt;
+    bool primary_key;
+    bool autoincrement;
+    const char* extra;
+} DbColumn;
+
+typedef struct {
+    const char* old;
+    const char* new;
+} DbRename;
+
+typedef struct {
+    const char* name;
+    const DbColumn* columns;
+    size_t columns_count;
+    const DbRename* renames;
+    size_t renames_count;
+} DbTable;
+
+#define DB_COLUMN_ITEM(enum_name, column, ...)    [enum_name##_##column] = {#column, __VA_ARGS__},
+#define DB_RENAME_ITEM(empty, old_name, new_name) {.old = #old_name, .new = #new_name},
+#define DB_TABLE_DEFINE(TABLE_MACRO, table_name, enum_name) \
+    static const DbColumn _##table_name##_columns[] = {     \
+        TABLE_MACRO(enum_name, DB_COLUMN_ITEM, DB_EMPTY)};  \
+    static const DbRename _##table_name##_renames[] = {     \
+        TABLE_MACRO(DB_EMPTY, DB_EMPTY, DB_RENAME_ITEM)};   \
+    static const DbTable table_name##_table = {             \
+        .name = #table_name,                                \
+        .columns = _##table_name##_columns,                 \
+        .columns_count = COUNT_OF(_##table_name##_columns), \
+        .renames = _##table_name##_renames,                 \
+        .renames_count = COUNT_OF(_##table_name##_renames), \
+    };
+DB_TABLE_DEFINE(_SETTINGS, settings, SettingsColumn)
 
 static void db_append_column_spec(m_string_t* sql, const DbColumn* column) {
     m_string_cat_printf(*sql, "%s %s", column->name, column->type);
