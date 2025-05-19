@@ -24,6 +24,7 @@ SMARTENUM_DEFINE(_TexCompress, TexCompress)
 
 SMARTENUM_DEFINE(_TimelineEventType, TimelineEventType)
 const TimelineEventTypeInfo timeline_event_type[] = {
+    // FIXME: update format specifiers for sprintf
     [TimelineEventType_GameAdded] =
         {
             .display = "Added",

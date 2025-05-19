@@ -113,6 +113,7 @@ void gui_backend_process_events(Gui* gui) {
         }
     }
 
+    // FIXME: change behavior based on settings, implement tray icon
     // If window close was requested, save it and handle in draw in case confirmation is needed
     // If requested a second time, just close anyway
     if(requested_close) {
@@ -127,6 +128,7 @@ void gui_backend_process_events(Gui* gui) {
 void gui_backend_new_frame(Gui* gui) {
     UNUSED(gui);
 
+    // FIXME: use settings for parameters
     // Apply smooth scrolling
     ImVec2 scroll_now;
     if(ABS(gui->scroll_energy.x) > 0.01f) {

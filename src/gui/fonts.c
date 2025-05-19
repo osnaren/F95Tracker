@@ -35,6 +35,7 @@ static const ImFontConfig font_mdi_config = {
 };
 
 void gui_fonts_load(Gui* gui) {
+    // FIXME: load missing fonts
     gui->fonts.base = ImFontAtlas_AddFontFromMemoryCompressedTTF(
         gui->io->Fonts,
         font_karla_regular_compressed_data,

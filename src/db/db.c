@@ -449,6 +449,7 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     res = sqlite3_step(stmt);
     db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
 
+    // FIXME: load missing fields
     assert(sqlite3_column_count(stmt) == settings_table.columns_count);
     size_t col = 1; // Skip _ column
     settings->background_on_close = sqlite3_column_int(stmt, col++);
@@ -552,6 +553,7 @@ static void db_do_load_settings(Db* db, Settings* settings) {
 
     m_string_clear(sql);
 
+    // FIXME: handle migration when loading this field
     // def __post_init__(self):
     //     if "" in self.default_exe_dir:
     //     from modules import globals
@@ -585,6 +587,7 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
 
+    // FIXME: save missing fields
     switch(column) {
     case SettingsColumn__:
         res = sqlite3_bind_int(stmt, 1, 0);

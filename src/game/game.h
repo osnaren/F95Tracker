@@ -224,6 +224,7 @@ extern const GameTypeInfo game_type[];
 
 typedef int32_t GameId;
 
+// FIXME: implement missing fields
 typedef struct {
     GameId id;
     // bool | None custom;

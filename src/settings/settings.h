@@ -76,6 +76,7 @@ extern const TimelineEventTypeInfo timeline_event_type[];
 #define DEFAULT_STYLE_TEXT_HEX      "#ffffff"
 #define DEFAULT_STYLE_TEXT_DIM_HEX  "#808080"
 
+// FIXME: implement missing fields
 typedef struct {
     bool background_on_close;
     int32_t bg_notifs_interval;

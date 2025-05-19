@@ -17,7 +17,7 @@ Path* path_init(const char* init) {
 }
 
 Path* path_init_data_dir(void) {
-    // FIXME: other OS's
+    // TODO: other OS's
     Path* path = path_init(getenv("HOME"));
     path_join(path, ".config/f95checker");
     return path;
