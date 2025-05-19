@@ -15,6 +15,7 @@ typedef struct {
     enum {
         DbMessageType_Quit,
         DbMessageType_Backup,
+        DbMessageType_LoadSettings,
         DbMessageType_SaveSettings,
     } type;
     m_eflag_t* eflag;
@@ -22,10 +23,11 @@ typedef struct {
         struct {
             const Settings* ptr;
             SettingsColumn column;
-        } save_settings;
+        } settings;
     };
 } DbMessage;
 
+// TODO: check if 100 queue is really useful
 M_BUFFER_DEF(DbMessageQueue, DbMessage, 100, M_BUFFER_QUEUE, M_POD_OPLIST)
 
 struct Db {
@@ -116,7 +118,6 @@ Db* db_init(void) {
     res = sqlite3_wal_autocheckpoint(db->conn, 100);
     db_assert(db, res, SQLITE_OK, "sqlite3_wal_autocheckpoint()");
 
-    // FIXME: move table loading to thread
     db->did_migration_backup = false;
     DbMessageQueue_init(db->queue, 100);
     m_thread_create(db->thread, db_thread, db);
@@ -124,16 +125,24 @@ Db* db_init(void) {
     return db;
 }
 
-void db_backup(Db* db) {
+static void db_send_message_async(Db* db, const DbMessage message) {
+    DbMessageQueue_push(db->queue, message);
+}
+
+static void db_send_message_blocking(Db* db, DbMessage message) {
     m_eflag_t eflag;
     m_eflag_init(eflag);
-    const DbMessage message = {
-        .type = DbMessageType_Backup,
-        .eflag = &eflag,
-    };
-    DbMessageQueue_push(db->queue, message);
+    message.eflag = &eflag;
+    db_send_message_async(db, message);
     m_eflag_wait(eflag);
     m_eflag_clear(eflag);
+}
+
+void db_backup(Db* db) {
+    const DbMessage message = {
+        .type = DbMessageType_Backup,
+    };
+    db_send_message_blocking(db, message);
 }
 
 static void db_append_backup_id(m_string_t* str) {
@@ -402,6 +411,17 @@ static void db_create_table(Db* db, const DbTable* table) {
 }
 
 void db_load_settings(Db* db, Settings* settings) {
+    const DbMessage message = {
+        .type = DbMessageType_LoadSettings,
+        .settings =
+            {
+                .ptr = settings,
+            },
+    };
+    db_send_message_blocking(db, message);
+}
+
+static void db_do_load_settings(Db* db, Settings* settings) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
@@ -542,13 +562,13 @@ void db_load_settings(Db* db, Settings* settings) {
 void db_save_settings(Db* db, const Settings* settings, SettingsColumn column) {
     const DbMessage message = {
         .type = DbMessageType_SaveSettings,
-        .save_settings =
+        .settings =
             {
                 .ptr = settings,
                 .column = column,
             },
     };
-    DbMessageQueue_push(db->queue, message);
+    db_send_message_async(db, message);
 }
 
 static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn column) {
@@ -837,8 +857,11 @@ static void db_thread(void* ctx) {
         case DbMessageType_Backup:
             db_do_backup(db);
             break;
+        case DbMessageType_LoadSettings:
+            db_do_load_settings(db, (Settings*)message.settings.ptr);
+            break;
         case DbMessageType_SaveSettings:
-            db_do_save_settings(db, message.save_settings.ptr, message.save_settings.column);
+            db_do_save_settings(db, message.settings.ptr, message.settings.column);
             break;
         }
         if(message.eflag != NULL) {
@@ -851,7 +874,7 @@ void db_free(Db* db) {
     const DbMessage message = {
         .type = DbMessageType_Quit,
     };
-    DbMessageQueue_push(db->queue, message);
+    db_send_message_async(db, message);
     m_thread_join(db->thread);
     DbMessageQueue_clear(db->queue);
 
