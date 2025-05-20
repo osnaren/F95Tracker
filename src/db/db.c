@@ -549,8 +549,15 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     settings->filter_all_tabs = sqlite3_column_int(stmt, col++);
     settings->fit_images = sqlite3_column_int(stmt, col++);
     settings->grid_columns = sqlite3_column_int(stmt, col++);
-    // settings->hidden_timeline_events = sqlite3_column_int(stmt, column_i++);
-    col++;
+
+    json_object* hidden_timeline_events_json = sqlite3_column_json(stmt, col++);
+    memset(settings->hidden_timeline_events, false, sizeof(settings->hidden_timeline_events));
+    for(size_t i = 0; i < json_object_array_length(hidden_timeline_events_json); i++) {
+        json_object* timeline_event = json_object_array_get_idx(hidden_timeline_events_json, i);
+        settings->hidden_timeline_events[json_object_get_int(timeline_event)] = true;
+    }
+    json_object_put(hidden_timeline_events_json);
+
     settings->hide_empty_tabs = sqlite3_column_int(stmt, col++);
     settings->highlight_tags = sqlite3_column_int(stmt, col++);
     settings->ignore_semaphore_timeouts = sqlite3_column_int(stmt, col++);
@@ -764,7 +771,13 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
         res = sqlite3_bind_int(stmt, 1, settings->grid_columns);
         break;
     case SettingsColumn_hidden_timeline_events:
-        // res = sqlite3_bind_int(stmt, 1, settings->hidden_timeline_events);
+        json_object* hidden_timeline_events_json = json_object_new_array();
+        for(TimelineEventType ev = TimelineEventType_min(); ev <= TimelineEventType_max(); ev++) {
+            if(settings->hidden_timeline_events[ev] == false) continue;
+            json_object_array_add(hidden_timeline_events_json, json_object_new_int(ev));
+        }
+        res = sqlite3_bind_json(stmt, 1, hidden_timeline_events_json);
+        json_object_put(hidden_timeline_events_json);
         break;
     case SettingsColumn_hide_empty_tabs:
         res = sqlite3_bind_int(stmt, 1, settings->hide_empty_tabs);
