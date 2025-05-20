@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/game.h"
 #include "path/path.h"
 
 #include <dcimgui/dcimgui.h>
@@ -30,6 +31,7 @@ SMARTENUM_DECLARE(_Os, Os)
 SMARTENUM_DECLARE(_ProxyType, ProxyType)
 
 #define _TagHighlight(_, $) \
+    _($, None, 0)           \
     _($, Positive, 1)       \
     _($, Negative, 2)       \
     _($, Critical, 3)
@@ -37,7 +39,7 @@ SMARTENUM_DECLARE(_TagHighlight, TagHighlight)
 typedef struct {
     ImColor color;
 } TagHighlightInfo;
-extern const TagHighlightInfo tag_highlight[1 + TagHighlight_COUNT];
+extern const TagHighlightInfo tag_highlight[TagHighlight_COUNT];
 
 #define _TexCompress(_, $) \
     _($, Disabled, 1)      \
@@ -151,7 +153,7 @@ typedef struct {
     ImColor style_text;
     ImColor style_text_dim;
     bool table_header_outside_list;
-    // dict[Tag, TagHighlight] tags_highlights;
+    TagHighlight tags_highlights[GameTag_COUNT];
     TexCompress tex_compress;
     bool tex_compress_replace;
     m_string_t timestamp_format;

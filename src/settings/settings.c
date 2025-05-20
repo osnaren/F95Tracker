@@ -14,7 +14,8 @@ SMARTENUM_DEFINE(_Os, Os)
 SMARTENUM_DEFINE(_ProxyType, ProxyType)
 
 SMARTENUM_DEFINE(_TagHighlight, TagHighlight)
-const TagHighlightInfo tag_highlight[1 + TagHighlight_COUNT] = {
+const TagHighlightInfo tag_highlight[TagHighlight_COUNT] = {
+    [TagHighlight_None] = {.color = {{0.3, 0.3, 0.3, 1.0}}},
     [TagHighlight_Positive] = {.color = {{0.0, 0.6, 0.0, 1.0}}},
     [TagHighlight_Negative] = {.color = {{0.6, 0.0, 0.0, 1.0}}},
     [TagHighlight_Critical] = {.color = {{0.0, 0.0, 0.0, 1.0}}},

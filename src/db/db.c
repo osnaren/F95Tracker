@@ -4,11 +4,6 @@
 
 #include <sqlite3/sqlite3.h>
 
-#define sqlite3_column_count(pStmt)   (size_t)sqlite3_column_count(pStmt)
-#define sqlite3_column_text(pStmt, i) (const char*)sqlite3_column_text(pStmt, i)
-#define sqlite3_bind_mstring(pStmt, i, str) \
-    sqlite3_bind_text(pStmt, i, m_string_get_cstr(str), -1, SQLITE_TRANSIENT)
-
 #define DB_FILE "temp.sqlite3" // TODO: change when its ready
 
 typedef struct {
@@ -151,6 +146,41 @@ static void db_do_backup(Db* db) {
     m_bstring_clear(bytes);
 
     path_free(backup);
+}
+
+#define sqlite3_column_count(pStmt) (size_t)sqlite3_column_count(pStmt)
+
+#define sqlite3_column_text(pStmt, i) (const char*)sqlite3_column_text(pStmt, i)
+
+static ImColor sqlite3_column_imcolor(sqlite3_stmt* stmt, int32_t col) {
+    const char* hex_color = sqlite3_column_text(stmt, col);
+    uint8_t r, g, b;
+    int32_t res = sscanf(hex_color, "#%02hhx%02hhx%02hhx", &r, &g, &b);
+    if(res != 3) {
+        r = g = b = 255;
+    }
+    ImColor im_color = {{
+        .x = (flt32_t)r / 255,
+        .y = (flt32_t)g / 255,
+        .z = (flt32_t)b / 255,
+        .w = 1.0,
+    }};
+    return im_color;
+}
+
+#define sqlite3_bind_mstring(pStmt, i, str) \
+    sqlite3_bind_text(pStmt, i, m_string_get_cstr(str), -1, SQLITE_TRANSIENT)
+
+static int32_t sqlite3_bind_imcolor(sqlite3_stmt* stmt, int32_t param, ImColor im_color) {
+    uint8_t r = im_color.Value.x * 255;
+    uint8_t g = im_color.Value.y * 255;
+    uint8_t b = im_color.Value.z * 255;
+    char hex_color[8];
+    int32_t res = snprintf(hex_color, sizeof(hex_color), "#%02hhx%02hhx%02hhx", r, g, b);
+    if(res != sizeof(hex_color) - 1) {
+        strlcpy(hex_color, "#FFFFFF", sizeof(hex_color));
+    }
+    return sqlite3_bind_text(stmt, param, hex_color, -1, SQLITE_TRANSIENT);
 }
 
 typedef struct {
@@ -410,34 +440,6 @@ static void db_create_table(Db* db, const DbTable* table) {
     m_string_clear(sql);
 }
 
-static ImColor sqlite3_column_imcolor(sqlite3_stmt* stmt, int32_t col) {
-    const char* hex_color = sqlite3_column_text(stmt, col);
-    uint8_t r, g, b;
-    int32_t res = sscanf(hex_color, "#%02hhx%02hhx%02hhx", &r, &g, &b);
-    if(res != 3) {
-        r = g = b = 255;
-    }
-    ImColor im_color = {{
-        .x = (flt32_t)r / 255,
-        .y = (flt32_t)g / 255,
-        .z = (flt32_t)b / 255,
-        .w = 1.0,
-    }};
-    return im_color;
-}
-
-static int32_t sqlite3_bind_imcolor(sqlite3_stmt* stmt, int32_t param, ImColor im_color) {
-    uint8_t r = im_color.Value.x * 255;
-    uint8_t g = im_color.Value.y * 255;
-    uint8_t b = im_color.Value.z * 255;
-    char hex_color[8];
-    int32_t res = snprintf(hex_color, sizeof(hex_color), "#%02hhx%02hhx%02hhx", r, g, b);
-    if(res != sizeof(hex_color) - 1) {
-        strlcpy(hex_color, "#FFFFFF", sizeof(hex_color));
-    }
-    return sqlite3_bind_text(stmt, param, hex_color, -1, SQLITE_TRANSIENT);
-}
-
 void db_load_settings(Db* db, Settings* settings) {
     const DbMessage message = {
         .type = DbMessageType_LoadSettings,
@@ -582,8 +584,21 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     settings->style_text = sqlite3_column_imcolor(stmt, col++);
     settings->style_text_dim = sqlite3_column_imcolor(stmt, col++);
     settings->table_header_outside_list = sqlite3_column_int(stmt, col++);
-    // settings->tags_highlights = sqlite3_column_int(stmt, column_i++);
-    col++;
+
+    const char* tags_highlights_text = sqlite3_column_text(stmt, col++);
+    json_object* tags_highlights_json = json_tokener_parse(tags_highlights_text);
+    for(GameTag tag = GameTag_min(); tag <= GameTag_max(); tag++) {
+        char tag_key[4];
+        snprintf(tag_key, sizeof(tag_key), "%d", tag);
+        json_object* tag_highlight = json_object_object_get(tags_highlights_json, tag_key);
+        if(!json_object_is_type(tag_highlight, json_type_int)) {
+            settings->tags_highlights[tag] = TagHighlight_None;
+        } else {
+            settings->tags_highlights[tag] = json_object_get_int(tag_highlight);
+        }
+    }
+    json_object_put(tags_highlights_json);
+
     settings->tex_compress = sqlite3_column_int(stmt, col++);
     settings->tex_compress_replace = sqlite3_column_int(stmt, col++);
     m_string_set(settings->timestamp_format, sqlite3_column_text(stmt, col++));
@@ -869,7 +884,19 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
         res = sqlite3_bind_int(stmt, 1, settings->table_header_outside_list);
         break;
     case SettingsColumn_tags_highlights:
-        // res = sqlite3_bind_int(stmt, 1, settings->tags_highlights);
+        json_object* tags_highlights_json = json_object_new_object();
+        for(GameTag tag = GameTag_min(); tag <= GameTag_max(); tag++) {
+            if(settings->tags_highlights[tag] == TagHighlight_None) continue;
+            char tag_key[4];
+            snprintf(tag_key, sizeof(tag_key), "%d", tag);
+            json_object_object_add(
+                tags_highlights_json,
+                tag_key,
+                json_object_new_int(settings->tags_highlights[tag]));
+        }
+        const char* tags_highlights_text = json_object_to_json_string(tags_highlights_json);
+        res = sqlite3_bind_text(stmt, 1, tags_highlights_text, -1, SQLITE_TRANSIENT);
+        json_object_put(tags_highlights_json);
         break;
     case SettingsColumn_tex_compress:
         res = sqlite3_bind_int(stmt, 1, settings->tex_compress);
