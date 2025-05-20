@@ -71,5 +71,11 @@ void gui_window_draw(Gui* gui) {
         db_save_settings(app.db, app.settings, SettingsColumn_style_accent);
     }
 
+    if(ImGui_Button("Test save JSON fields")) {
+        db_save_settings(app.db, app.settings, SettingsColumn_default_exe_dir);
+        db_save_settings(app.db, app.settings, SettingsColumn_downloads_dir);
+        db_save_settings(app.db, app.settings, SettingsColumn_tags_highlights);
+    }
+
     ImGui_End();
 }

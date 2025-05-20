@@ -152,6 +152,8 @@ static void db_do_backup(Db* db) {
 
 #define sqlite3_column_text(pStmt, i) (const char*)sqlite3_column_text(pStmt, i)
 
+#define sqlite3_column_json(pStmt, i) json_tokener_parse(sqlite3_column_text(pStmt, i))
+
 static ImColor sqlite3_column_imcolor(sqlite3_stmt* stmt, int32_t col) {
     const char* hex_color = sqlite3_column_text(stmt, col);
     uint8_t r, g, b;
@@ -170,6 +172,19 @@ static ImColor sqlite3_column_imcolor(sqlite3_stmt* stmt, int32_t col) {
 
 #define sqlite3_bind_mstring(pStmt, i, str) \
     sqlite3_bind_text(pStmt, i, m_string_get_cstr(str), -1, SQLITE_TRANSIENT)
+
+#define sqlite3_bind_json(pStmt, i, json)                             \
+    sqlite3_bind_text(                                                \
+        pStmt,                                                        \
+        i,                                                            \
+        json_object_to_json_string_ext(                               \
+            json,                                                     \
+            JSON_C_TO_STRING_PLAIN | JSON_C_TO_STRING_NOSLASHESCAPE), \
+        -1,                                                           \
+        SQLITE_TRANSIENT)
+
+#define json_object_object_add_unique(obj, key, val) \
+    json_object_object_add_ex(obj, key, val, JSON_C_OBJECT_ADD_KEY_IS_NEW)
 
 static int32_t sqlite3_bind_imcolor(sqlite3_stmt* stmt, int32_t param, ImColor im_color) {
     uint8_t r = im_color.Value.x * 255;
@@ -518,8 +533,7 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     // settings->display_tab = sqlite3_column_int(stmt, column_i++);
     col++;
 
-    const char* downloads_dir_text = sqlite3_column_text(stmt, col++);
-    json_object* downloads_dir_json = json_tokener_parse(downloads_dir_text);
+    json_object* downloads_dir_json = sqlite3_column_json(stmt, col++);
     for(Os os = Os_min(); os <= Os_max(); os++) {
         char os_key[2];
         snprintf(os_key, sizeof(os_key), "%d", os);
@@ -585,8 +599,7 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     settings->style_text_dim = sqlite3_column_imcolor(stmt, col++);
     settings->table_header_outside_list = sqlite3_column_int(stmt, col++);
 
-    const char* tags_highlights_text = sqlite3_column_text(stmt, col++);
-    json_object* tags_highlights_json = json_tokener_parse(tags_highlights_text);
+    json_object* tags_highlights_json = sqlite3_column_json(stmt, col++);
     for(GameTag tag = GameTag_min(); tag <= GameTag_max(); tag++) {
         char tag_key[4];
         snprintf(tag_key, sizeof(tag_key), "%d", tag);
@@ -694,13 +707,12 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
             if(path_is_empty(settings->default_exe_dir[os])) continue;
             char os_key[2];
             snprintf(os_key, sizeof(os_key), "%d", os);
-            json_object_object_add(
+            json_object_object_add_unique(
                 default_exe_dir_json,
                 os_key,
                 json_object_new_string(path_cstr(settings->default_exe_dir[os])));
         }
-        const char* default_exe_dir_text = json_object_to_json_string(default_exe_dir_json);
-        res = sqlite3_bind_text(stmt, 1, default_exe_dir_text, -1, SQLITE_TRANSIENT);
+        res = sqlite3_bind_json(stmt, 1, default_exe_dir_json);
         json_object_put(default_exe_dir_json);
         break;
     case SettingsColumn_default_tab_is_new:
@@ -718,13 +730,12 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
             if(path_is_empty(settings->downloads_dir[os])) continue;
             char os_key[2];
             snprintf(os_key, sizeof(os_key), "%d", os);
-            json_object_object_add(
+            json_object_object_add_unique(
                 downloads_dir_json,
                 os_key,
                 json_object_new_string(path_cstr(settings->downloads_dir[os])));
         }
-        const char* downloads_dir_text = json_object_to_json_string(downloads_dir_json);
-        res = sqlite3_bind_text(stmt, 1, downloads_dir_text, -1, SQLITE_TRANSIENT);
+        res = sqlite3_bind_json(stmt, 1, downloads_dir_json);
         json_object_put(downloads_dir_json);
         break;
     case SettingsColumn_ext_background_add:
@@ -889,13 +900,12 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
             if(settings->tags_highlights[tag] == TagHighlight_None) continue;
             char tag_key[4];
             snprintf(tag_key, sizeof(tag_key), "%d", tag);
-            json_object_object_add(
+            json_object_object_add_unique(
                 tags_highlights_json,
                 tag_key,
                 json_object_new_int(settings->tags_highlights[tag]));
         }
-        const char* tags_highlights_text = json_object_to_json_string(tags_highlights_json);
-        res = sqlite3_bind_text(stmt, 1, tags_highlights_text, -1, SQLITE_TRANSIENT);
+        res = sqlite3_bind_json(stmt, 1, tags_highlights_json);
         json_object_put(tags_highlights_json);
         break;
     case SettingsColumn_tex_compress:
