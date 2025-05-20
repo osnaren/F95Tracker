@@ -559,8 +559,15 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     settings->interface_scaling = sqlite3_column_double(stmt, col++);
     // settings->last_successful_refresh = sqlite3_column_int(stmt, column_i++);
     col++;
-    // settings->manual_sort_list = sqlite3_column_int(stmt, column_i++);
-    col++;
+
+    json_object* manual_sort_list_json = sqlite3_column_json(stmt, col++);
+    GameIdArray_resize(settings->manual_sort_list, json_object_array_length(manual_sort_list_json));
+    for(size_t i = 0; i < json_object_array_length(manual_sort_list_json); i++) {
+        json_object* manual_sort_id = json_object_array_get_idx(manual_sort_list_json, i);
+        GameIdArray_set_at(settings->manual_sort_list, i, json_object_get_int(manual_sort_id));
+    }
+    json_object_put(manual_sort_list_json);
+
     settings->mark_installed_after_add = sqlite3_column_int(stmt, col++);
     settings->max_connections = sqlite3_column_int(stmt, col++);
     settings->max_retries = sqlite3_column_int(stmt, col++);
@@ -781,7 +788,16 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
         // res = sqlite3_bind_int(stmt, 1, settings->last_successful_refresh);
         break;
     case SettingsColumn_manual_sort_list:
-        // res = sqlite3_bind_int(stmt, 1, settings->manual_sort_list);
+        json_object* manual_sort_list_json =
+            json_object_new_array_ext(GameIdArray_size(settings->manual_sort_list));
+        for(size_t i = 0; i < GameIdArray_size(settings->manual_sort_list); i++) {
+            json_object_array_put_idx(
+                manual_sort_list_json,
+                i,
+                json_object_new_int(*GameIdArray_get(settings->manual_sort_list, i)));
+        }
+        res = sqlite3_bind_json(stmt, 1, manual_sort_list_json);
+        json_object_put(manual_sort_list_json);
         break;
     case SettingsColumn_mark_installed_after_add:
         res = sqlite3_bind_int(stmt, 1, settings->mark_installed_after_add);

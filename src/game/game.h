@@ -223,6 +223,7 @@ typedef struct {
 extern const GameTypeInfo game_type[1 + GameType_COUNT];
 
 typedef int32_t GameId;
+M_ARRAY_DEF(GameIdArray, GameId)
 
 // FIXME: implement missing fields
 typedef struct {

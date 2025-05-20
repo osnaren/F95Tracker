@@ -115,7 +115,7 @@ typedef struct {
     bool insecure_ssl;
     flt32_t interface_scaling;
     // Timestamp last_successful_refresh;
-    // list[int] manual_sort_list;
+    GameIdArray_t manual_sort_list;
     bool mark_installed_after_add;
     int32_t max_connections;
     int32_t max_retries;

@@ -9,6 +9,7 @@
 #include <json-c/json.h>
 #include <limits.h>
 // #include <math.h>
+#include <mlib/m-array.h>
 #include <mlib/m-bstring.h>
 #include <mlib/m-buffer.h>
 #include <mlib/m-string.h>

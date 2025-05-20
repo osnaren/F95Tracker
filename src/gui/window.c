@@ -75,6 +75,7 @@ void gui_window_draw(Gui* gui) {
         db_save_settings(app.db, app.settings, SettingsColumn_default_exe_dir);
         db_save_settings(app.db, app.settings, SettingsColumn_downloads_dir);
         db_save_settings(app.db, app.settings, SettingsColumn_tags_highlights);
+        db_save_settings(app.db, app.settings, SettingsColumn_manual_sort_list);
     }
 
     ImGui_End();
