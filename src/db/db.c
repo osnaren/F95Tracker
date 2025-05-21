@@ -1,8 +1,9 @@
 #include "db.h"
-#include "app.h"
 #include "path/path.h"
 
 #include <sqlite3/sqlite3.h>
+
+#include <app.h>
 
 #define DB_FILE "temp.sqlite3" // TODO: change when its ready
 

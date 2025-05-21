@@ -1,6 +1,7 @@
 #include "window.h"
-#include "app.h"
 #include "util.h"
+
+#include <app.h>
 
 const char* ok = mdi_check " Ok";
 const char* cancel = mdi_cancel " Cancel";

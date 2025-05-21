@@ -1,4 +1,4 @@
-#include "app.h"
+#include <app.h>
 
 App app = {
     .version = F95CHECKER_VERSION,
