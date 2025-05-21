@@ -102,10 +102,20 @@
     RENAME($, refresh_workers, max_connections)
 DB_TABLE_DECLARE(_SETTINGS, settings, SettingsColumn)
 
+#define _TABS($, COLUMN, RENAME)                                                 \
+    COLUMN($, id, .type = "INTEGER", .primary_key = true, .autoincrement = true) \
+    COLUMN($, name, .type = "TEXT", .dflt = "''")                                \
+    COLUMN($, icon, .type = "TEXT", .dflt = "'" DEFAULT_TAB_ICON_STR "'")        \
+    COLUMN($, color, .type = "TEXT", .dflt = "NULL")                             \
+    COLUMN($, position, .type = "INTEGER", .dflt = "0")
+DB_TABLE_DECLARE(_TABS, tabs, TabsColumn)
+
 typedef struct Db Db;
 
 Db* db_init(void);
 void db_backup(Db* db);
 void db_load_settings(Db* db, Settings* settings);
-void db_save_settings(Db* db, const Settings* settings, SettingsColumn column);
+void db_save_setting(Db* db, const Settings* settings, SettingsColumn column);
+void db_load_tabs(Db* db, TabList_t* tabs);
+void db_save_tab(Db* db, const Tab* tab, TabsColumn column);
 void db_free(Db* db);

@@ -9,6 +9,7 @@ typedef struct {
     Os os;
     Db* db;
     Gui* gui;
+    TabList_t tabs;
     Settings* settings;
 } App;
 

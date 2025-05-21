@@ -11,14 +11,26 @@ typedef struct {
         DbMessageType_Quit,
         DbMessageType_Backup,
         DbMessageType_LoadSettings,
-        DbMessageType_SaveSettings,
+        DbMessageType_SaveSetting,
+        DbMessageType_LoadTabs,
+        DbMessageType_SaveTab,
     } type;
     m_eflag_t* eflag;
     union {
-        struct {
-            const Settings* ptr;
-            SettingsColumn column;
-        } settings;
+        union {
+            Settings* settings;
+            TabList_t* tabs;
+        } load;
+        union {
+            struct {
+                const Settings* ptr;
+                SettingsColumn column;
+            } setting;
+            struct {
+                const Tab* ptr;
+                TabsColumn column;
+            } tab;
+        } save;
     };
 } DbMessage;
 
@@ -235,6 +247,7 @@ typedef struct {
         .renames_count = COUNT_OF(_##table_name##_renames), \
     };
 DB_TABLE_DEFINE(_SETTINGS, settings, SettingsColumn)
+DB_TABLE_DEFINE(_TABS, tabs, TabsColumn)
 
 static void db_append_column_spec(m_string_t* sql, const DbColumn* column) {
     m_string_cat_printf(*sql, "%s %s", column->name, column->type);
@@ -458,10 +471,7 @@ static void db_create_table(Db* db, const DbTable* table) {
 void db_load_settings(Db* db, Settings* settings) {
     const DbMessage message = {
         .type = DbMessageType_LoadSettings,
-        .settings =
-            {
-                .ptr = settings,
-            },
+        .load.settings = settings,
     };
     db_send_message_blocking(db, message);
 }
@@ -486,7 +496,6 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     m_string_set(sql, "SELECT ");
     db_append_column_names(&sql, &settings_table);
     m_string_cat_printf(sql, " FROM %s", settings_table.name);
-
     sqlite3_stmt* stmt;
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
@@ -530,7 +539,18 @@ static void db_do_load_settings(Db* db, Settings* settings) {
 
     settings->default_tab_is_new = sqlite3_column_int(stmt, col++);
     settings->display_mode = sqlite3_column_int(stmt, col++);
-    // settings->display_tab = sqlite3_column_int(stmt, column_i++);
+
+    settings->display_tab = NULL;
+    if(sqlite3_column_type(stmt, col) != SQLITE_NULL) {
+        TabId tab_id = sqlite3_column_int(stmt, col);
+        for
+            M_EACH(tab, app.tabs, TabList_t) {
+                if(tab->id == tab_id) {
+                    settings->display_tab = tab;
+                    break;
+                }
+            }
+    }
     col++;
 
     json_object* downloads_dir_json = sqlite3_column_json(stmt, col++);
@@ -642,10 +662,10 @@ static void db_do_load_settings(Db* db, Settings* settings) {
     m_string_clear(sql);
 }
 
-void db_save_settings(Db* db, const Settings* settings, SettingsColumn column) {
+void db_save_setting(Db* db, const Settings* settings, SettingsColumn column) {
     const DbMessage message = {
-        .type = DbMessageType_SaveSettings,
-        .settings =
+        .type = DbMessageType_SaveSetting,
+        .save.setting =
             {
                 .ptr = settings,
                 .column = column,
@@ -654,7 +674,7 @@ void db_save_settings(Db* db, const Settings* settings, SettingsColumn column) {
     db_send_message_async(db, message);
 }
 
-static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn column) {
+static void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
@@ -736,7 +756,11 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
         res = sqlite3_bind_int(stmt, 1, settings->display_mode);
         break;
     case SettingsColumn_display_tab:
-        // res = sqlite3_bind_int(stmt, 1, settings->display_tab);
+        if(settings->display_tab == NULL) {
+            res = sqlite3_bind_null(stmt, 1);
+        } else {
+            res = sqlite3_bind_int(stmt, 1, settings->display_tab->id);
+        }
         break;
     case SettingsColumn_downloads_dir:
         json_object* downloads_dir_json = json_object_new_object();
@@ -976,6 +1000,117 @@ static void db_do_save_settings(Db* db, const Settings* settings, SettingsColumn
     m_string_clear(sql);
 }
 
+void db_load_tabs(Db* db, TabList_t* tabs) {
+    const DbMessage message = {
+        .type = DbMessageType_LoadTabs,
+        .load.tabs = tabs,
+    };
+    db_send_message_blocking(db, message);
+}
+
+static void db_do_load_tabs(Db* db, TabList_t* tabs) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    // Create the table and handle schema migrations
+    db_create_table(db, &tabs_table);
+
+    // Read all tabs
+    m_string_set(sql, "SELECT ");
+    db_append_column_names(&sql, &tabs_table);
+    m_string_cat_printf(sql, " FROM %s ORDER BY position ASC", tabs_table.name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    assert(sqlite3_column_count(stmt) == tabs_table.columns_count);
+    while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
+        db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+        Tab* tab = TabList_push_front_new(*tabs);
+
+        size_t col = 0;
+        tab->id = sqlite3_column_int(stmt, col++);
+        m_string_set(tab->name, sqlite3_column_text(stmt, col++));
+        m_string_set(tab->icon, sqlite3_column_text(stmt, col++));
+
+        if(sqlite3_column_type(stmt, col) == SQLITE_NULL) {
+            tab->color = (ImColor){{0, 0, 0, 0}};
+        } else {
+            tab->color = sqlite3_column_imcolor(stmt, col);
+        }
+        col++;
+
+        tab->position = sqlite3_column_int(stmt, col++);
+    }
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+}
+
+void db_save_tab(Db* db, const Tab* tab, TabsColumn column) {
+    const DbMessage message = {
+        .type = DbMessageType_SaveSetting,
+        .save.tab =
+            {
+                .ptr = tab,
+                .column = column,
+            },
+    };
+    db_send_message_async(db, message);
+}
+
+static void db_do_save_tab(Db* db, const Tab* tab, TabsColumn column) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    m_string_printf(
+        sql,
+        "UPDATE %s SET %s=? WHERE id=?",
+        tabs_table.name,
+        tabs_table.columns[column].name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    res = sqlite3_bind_int(stmt, 2, tab->id);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
+
+    switch(column) {
+    case TabsColumn_id:
+        res = sqlite3_bind_int(stmt, 1, tab->id);
+        break;
+    case TabsColumn_name:
+        res = sqlite3_bind_mstring(stmt, 1, tab->name);
+        break;
+    case TabsColumn_icon:
+        res = sqlite3_bind_mstring(stmt, 1, tab->icon);
+        break;
+    case TabsColumn_color:
+        if(tab->color.Value.w == 0) {
+            res = sqlite3_bind_null(stmt, 1);
+        } else {
+            res = sqlite3_bind_imcolor(stmt, 1, tab->color);
+        }
+        break;
+    case TabsColumn_position:
+        res = sqlite3_bind_int(stmt, 1, tab->position);
+        break;
+    }
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_*()");
+
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_DONE, "sqlite3_step()");
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+}
+
 static void db_thread(void* ctx) {
     Db* db = ctx;
     bool quit = false;
@@ -990,10 +1125,16 @@ static void db_thread(void* ctx) {
             db_do_backup(db);
             break;
         case DbMessageType_LoadSettings:
-            db_do_load_settings(db, (Settings*)message.settings.ptr);
+            db_do_load_settings(db, message.load.settings);
             break;
-        case DbMessageType_SaveSettings:
-            db_do_save_settings(db, message.settings.ptr, message.settings.column);
+        case DbMessageType_SaveSetting:
+            db_do_save_setting(db, message.save.setting.ptr, message.save.setting.column);
+            break;
+        case DbMessageType_LoadTabs:
+            db_do_load_tabs(db, message.load.tabs);
+            break;
+        case DbMessageType_SaveTab:
+            db_do_save_tab(db, message.save.tab.ptr, message.save.tab.column);
             break;
         }
         if(message.eflag != NULL) {

@@ -12,6 +12,7 @@
 #include <mlib/m-array.h>
 #include <mlib/m-bstring.h>
 #include <mlib/m-buffer.h>
+#include <mlib/m-list.h>
 #include <mlib/m-string.h>
 #include <mlib/m-thread.h>
 // #include <stdarg.h>

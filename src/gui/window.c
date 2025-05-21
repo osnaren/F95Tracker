@@ -40,7 +40,7 @@ void gui_window_draw(Gui* gui) {
         app.settings->browser_custom_arguments,
         ImGuiInputTextFlags_None);
     if(ImGui_IsItemDeactivatedAfterEdit()) {
-        db_save_settings(app.db, app.settings, SettingsColumn_browser_custom_arguments);
+        db_save_setting(app.db, app.settings, SettingsColumn_browser_custom_arguments);
     }
 
     ImGui_AlignTextToFramePadding();
@@ -56,7 +56,7 @@ void gui_window_draw(Gui* gui) {
         "%d min",
         ImGuiSliderFlags_None);
     if(ImGui_IsItemDeactivatedAfterEdit()) {
-        db_save_settings(app.db, app.settings, SettingsColumn_bg_refresh_interval);
+        db_save_setting(app.db, app.settings, SettingsColumn_bg_refresh_interval);
     }
 
     ImGui_AlignTextToFramePadding();
@@ -68,16 +68,27 @@ void gui_window_draw(Gui* gui) {
         (flt32_t*)&app.settings->style_accent.Value,
         ImGuiColorEditFlags_None);
     if(ImGui_IsItemDeactivatedAfterEdit()) {
-        db_save_settings(app.db, app.settings, SettingsColumn_style_accent);
+        db_save_setting(app.db, app.settings, SettingsColumn_style_accent);
     }
 
     if(ImGui_Button("Test save JSON fields")) {
-        db_save_settings(app.db, app.settings, SettingsColumn_default_exe_dir);
-        db_save_settings(app.db, app.settings, SettingsColumn_downloads_dir);
-        db_save_settings(app.db, app.settings, SettingsColumn_tags_highlights);
-        db_save_settings(app.db, app.settings, SettingsColumn_manual_sort_list);
-        db_save_settings(app.db, app.settings, SettingsColumn_hidden_timeline_events);
+        db_save_setting(app.db, app.settings, SettingsColumn_default_exe_dir);
+        db_save_setting(app.db, app.settings, SettingsColumn_downloads_dir);
+        db_save_setting(app.db, app.settings, SettingsColumn_tags_highlights);
+        db_save_setting(app.db, app.settings, SettingsColumn_manual_sort_list);
+        db_save_setting(app.db, app.settings, SettingsColumn_hidden_timeline_events);
     }
+
+    ImGui_Text("Tabs:");
+    if(ImGui_Button("Test add new tab (no DB)")) {
+        // FIXME: implement DB tab create, delete, reorder
+        Tab* tab = TabList_push_front_new(app.tabs);
+        m_string_set(tab->name, "test123");
+    }
+    for
+        M_EACH(tab, app.tabs, TabList_t) {
+            ImGui_Text("%d %s", tab->position, m_string_get_cstr(tab->name));
+        }
 
     ImGui_End();
 }

@@ -22,6 +22,9 @@ int32_t main(int32_t argc, char** argv) {
         goto exit_db;
     }
 
+    TabList_init(app.tabs);
+    db_load_tabs(app.db, &app.tabs);
+
     app.settings = settings_init();
     db_load_settings(app.db, app.settings);
 
@@ -39,6 +42,8 @@ int32_t main(int32_t argc, char** argv) {
 exit_gui:
 
     settings_free(app.settings);
+
+    TabList_clear(app.tabs);
 
     db_free(app.db);
 exit_db:
