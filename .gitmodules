@@ -25,3 +25,6 @@
 [submodule "lib/vendor/bc7e"]
 	path = lib/vendor/bc7e
 	url = https://github.com/BinomialLLC/bc7e.git
+[submodule "lib/vendor/wolfssl"]
+	path = lib/vendor/wolfssl
+	url = https://github.com/wolfSSL/wolfssl.git
