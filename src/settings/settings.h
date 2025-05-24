@@ -1,77 +1,13 @@
 #pragma once
 
+#include "enums.h"
+
 #include "game/game.h"
 #include "path/path.h"
+#include "types/tab.h"
 
 #include <dcimgui/dcimgui.h>
-#include <fonts/mdi.h>
-#include <smart_enum/smart_enum.h>
 #include <std.h>
-
-#define _DisplayMode(_, $) \
-    _($, List, 1)          \
-    _($, Grid, 2)          \
-    _($, Kanban, 3)
-SMARTENUM_DECLARE(_DisplayMode, DisplayMode)
-typedef struct {
-    const char* icon;
-} DisplayModeInfo;
-extern const DisplayModeInfo display_mode[1 + DisplayMode_COUNT];
-
-#define _Os(_, $)    \
-    _($, Windows, 1) \
-    _($, Linux, 2)   \
-    _($, MacOS, 3)
-SMARTENUM_DECLARE(_Os, Os)
-
-#define _ProxyType(_, $) \
-    _($, Disabled, 1)    \
-    _($, SOCKS4, 2)      \
-    _($, SOCKS5, 3)      \
-    _($, HTTP, 4)
-SMARTENUM_DECLARE(_ProxyType, ProxyType)
-
-#define _TagHighlight(_, $) \
-    _($, None, 0)           \
-    _($, Positive, 1)       \
-    _($, Negative, 2)       \
-    _($, Critical, 3)
-SMARTENUM_DECLARE(_TagHighlight, TagHighlight)
-typedef struct {
-    ImColor color;
-} TagHighlightInfo;
-extern const TagHighlightInfo tag_highlight[TagHighlight_COUNT];
-
-#define _TexCompress(_, $) \
-    _($, Disabled, 1)      \
-    _($, ASTC, 2)          \
-    _($, BC7, 3)
-SMARTENUM_DECLARE(_TexCompress, TexCompress)
-
-#define _TimelineEventType(_, $)          \
-    _($, GameAdded, 1)                    \
-    _($, GameLaunched, 2)                 \
-    _($, GameFinished, 3)                 \
-    _($, GameInstalled, 4)                \
-    _($, ChangedName, 5)                  \
-    _($, ChangedStatus, 6)                \
-    _($, ChangedVersion, 7)               \
-    _($, ChangedDeveloper, 8)             \
-    _($, ChangedType, 9)                  \
-    _($, TagsAdded, 10)                   \
-    _($, TagsRemoved, 11)                 \
-    _($, ScoreIncreased, 12)              \
-    _($, ScoreDecreased, 13)              \
-    _($, RecheckExpired, 14) /* Unused */ \
-    _($, RecheckUserReq, 15)
-SMARTENUM_DECLARE(_TimelineEventType, TimelineEventType)
-typedef struct {
-    const char* display;
-    const char* icon;
-    uint8_t args_min;
-    const char* template;
-} TimelineEventTypeInfo;
-extern const TimelineEventTypeInfo timeline_event_type[1 + TimelineEventType_COUNT];
 
 #define DEFAULT_STYLE_ACCENT_HEX    "#d4202e"
 #define DEFAULT_STYLE_ALT_BG_HEX    "#101010"
@@ -80,58 +16,6 @@ extern const TimelineEventTypeInfo timeline_event_type[1 + TimelineEventType_COU
 #define DEFAULT_STYLE_CORNER_RADIUS 6
 #define DEFAULT_STYLE_TEXT_HEX      "#ffffff"
 #define DEFAULT_STYLE_TEXT_DIM_HEX  "#808080"
-
-typedef int32_t TabId;
-
-#define DEFAULT_TAB_ICON_STR mdi_heart_box
-
-typedef struct {
-    TabId id;
-    m_string_t name;
-    m_string_t icon;
-    ImColor color;
-    int32_t position;
-} Tab;
-
-static void Tab_init(Tab* tab) {
-    tab->id = 0;
-    m_string_init(tab->name);
-    m_string_init(tab->icon);
-    tab->color = (ImColor){{0, 0, 0, 0}};
-    tab->position = 0;
-}
-
-static void Tab_init_set(Tab* tab, const Tab* src) {
-    tab->id = src->id;
-    m_string_init_set(tab->name, src->name);
-    m_string_init_set(tab->icon, src->icon);
-    tab->color = src->color;
-    tab->position = src->position;
-}
-
-static void Tab_set(Tab* tab, const Tab* src) {
-    tab->id = src->id;
-    m_string_set(tab->name, src->name);
-    m_string_set(tab->icon, src->icon);
-    tab->color = src->color;
-    tab->position = src->position;
-}
-
-static void Tab_clear(Tab* tab) {
-    m_string_clear(tab->name);
-    m_string_clear(tab->icon);
-}
-
-#define M_OPL_Tab()                 \
-    (INIT(API_2(Tab_init)),         \
-     SET(API_6(Tab_set)),           \
-     INIT_SET(API_6(Tab_init_set)), \
-     CLEAR(API_2(Tab_clear)),       \
-     SWAP(M_SWAP_DEFAULT),          \
-     EQUAL(API_6(M_EQUAL_DEFAULT)))
-
-M_LIST_DUAL_PUSH_DEF(TabList, Tab)
-#define M_OPL_TabList_t() M_LIST_OPLIST(TabList)
 
 // FIXME: implement missing fields
 typedef struct {

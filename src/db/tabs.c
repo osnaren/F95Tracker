@@ -1,0 +1,95 @@
+#include "tabs.h"
+#include "db_i.h"
+
+DB_TABLE_DEFINE(_TABS, tabs, TabsColumn)
+
+void db_do_load_tabs(Db* db, TabList_t* tabs) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    // Create the table and handle schema migrations
+    db_create_table(db, &tabs_table);
+
+    // Read all tabs
+    m_string_set(sql, "SELECT ");
+    db_append_column_names(&sql, &tabs_table);
+    m_string_cat_printf(sql, " FROM %s ORDER BY position ASC", tabs_table.name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    assert(sqlite3_column_count(stmt) == tabs_table.columns_count);
+    while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
+        db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+        Tab* tab = TabList_push_front_new(*tabs);
+
+        size_t col = 0;
+        tab->id = sqlite3_column_int(stmt, col++);
+        m_string_set(tab->name, sqlite3_column_text(stmt, col++));
+        m_string_set(tab->icon, sqlite3_column_text(stmt, col++));
+
+        if(sqlite3_column_type(stmt, col) == SQLITE_NULL) {
+            tab->color = (ImColor){{0, 0, 0, 0}};
+        } else {
+            tab->color = sqlite3_column_imcolor(stmt, col);
+        }
+        col++;
+
+        tab->position = sqlite3_column_int(stmt, col++);
+    }
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+}
+
+void db_do_save_tab(Db* db, const Tab* tab, TabsColumn column) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    m_string_printf(
+        sql,
+        "UPDATE %s SET %s=? WHERE id=?",
+        tabs_table.name,
+        tabs_table.columns[column].name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    res = sqlite3_bind_int(stmt, 2, tab->id);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
+
+    switch(column) {
+    case TabsColumn_id:
+        res = sqlite3_bind_int(stmt, 1, tab->id);
+        break;
+    case TabsColumn_name:
+        res = sqlite3_bind_mstring(stmt, 1, tab->name);
+        break;
+    case TabsColumn_icon:
+        res = sqlite3_bind_mstring(stmt, 1, tab->icon);
+        break;
+    case TabsColumn_color:
+        if(tab->color.Value.w == 0) {
+            res = sqlite3_bind_null(stmt, 1);
+        } else {
+            res = sqlite3_bind_imcolor(stmt, 1, tab->color);
+        }
+        break;
+    case TabsColumn_position:
+        res = sqlite3_bind_int(stmt, 1, tab->position);
+        break;
+    }
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_*()");
+
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_DONE, "sqlite3_step()");
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+}

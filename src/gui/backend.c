@@ -9,7 +9,7 @@
 const flt32_t scroll_multiplier = 2.0f;
 const flt32_t scroll_smoothing = 8.0f;
 
-static void gui_backend_sdl_perror(const char* s) {
+static inline void gui_backend_sdl_perror(const char* s) {
     custom_perror(s, SDL_GetError());
 }
 
