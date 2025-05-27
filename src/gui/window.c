@@ -81,14 +81,21 @@ void gui_window_draw(Gui* gui) {
     }
 
     ImGui_Text("Tabs:");
-    if(ImGui_Button("Test add new tab (no DB)")) {
-        // FIXME: implement DB tab create, delete, reorder
-        Tab* tab = TabList_push_front_new(app.tabs);
-        m_string_set(tab->name, "test123");
+    if(ImGui_Button("Test add new tab")) {
+        Tab* tab = db_create_tab(app.db, &app.tabs);
+        UNUSED(tab);
     }
     for
         M_EACH(tab, app.tabs, TabList_t) {
+            ImGui_PushIDInt(tab->id);
+            if(ImGui_Button(mdi_trash_can_outline)) {
+                db_delete_tab(app.db, tab, &app.tabs);
+                ImGui_PopID();
+                continue;
+            }
+            ImGui_SameLine();
             ImGui_Text("%d %s", tab->position, m_string_get_cstr(tab->name));
+            ImGui_PopID();
         }
 
     ImGui_End();

@@ -387,11 +387,37 @@ void db_load_tabs(Db* db, TabList_t* tabs) {
 
 void db_save_tab(Db* db, const Tab* tab, TabsColumn column) {
     const DbMessage message = {
-        .type = DbMessageType_SaveSetting,
+        .type = DbMessageType_SaveTab,
         .save.tab =
             {
                 .ptr = tab,
                 .column = column,
+            },
+    };
+    db_send_message_async(db, message);
+}
+
+Tab* db_create_tab(Db* db, TabList_t* tabs) {
+    Tab* tab;
+    const DbMessage message = {
+        .type = DbMessageType_CreateTab,
+        .create.tab =
+            {
+                .tabs = tabs,
+                .out = &tab,
+            },
+    };
+    db_send_message_blocking(db, message);
+    return tab;
+}
+
+void db_delete_tab(Db* db, const Tab* tab, TabList_t* tabs) {
+    const DbMessage message = {
+        .type = DbMessageType_DeleteTab,
+        .delete.tab =
+            {
+                .ptr = tab,
+                .tabs = tabs,
             },
     };
     db_send_message_async(db, message);
@@ -421,6 +447,12 @@ static void db_thread(void* ctx) {
             break;
         case DbMessageType_SaveTab:
             db_do_save_tab(db, message.save.tab.ptr, message.save.tab.column);
+            break;
+        case DbMessageType_CreateTab:
+            *message.create.tab.out = db_do_create_tab(db, message.create.tab.tabs);
+            break;
+        case DbMessageType_DeleteTab:
+            db_do_delete_tab(db, message.delete.tab.ptr, message.delete.tab.tabs);
             break;
         }
         if(message.eflag != NULL) {

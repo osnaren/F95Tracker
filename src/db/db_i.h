@@ -14,6 +14,8 @@ typedef struct {
         DbMessageType_SaveSetting,
         DbMessageType_LoadTabs,
         DbMessageType_SaveTab,
+        DbMessageType_CreateTab,
+        DbMessageType_DeleteTab,
     } type;
     m_eflag_t* eflag;
     union {
@@ -31,6 +33,18 @@ typedef struct {
                 TabsColumn column;
             } tab;
         } save;
+        union {
+            struct {
+                TabList_t* tabs;
+                Tab** out;
+            } tab;
+        } create;
+        union {
+            struct {
+                const Tab* ptr;
+                TabList_t* tabs;
+            } tab;
+        } delete;
     };
 } DbMessage;
 
@@ -63,6 +77,8 @@ void db_do_load_settings(Db* db, Settings* settings);
 void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column);
 void db_do_load_tabs(Db* db, TabList_t* tabs);
 void db_do_save_tab(Db* db, const Tab* tab, TabsColumn column);
+Tab* db_do_create_tab(Db* db, TabList_t* tabs);
+void db_do_delete_tab(Db* db, const Tab* tab, TabList_t* tabs);
 
 #define sqlite3_column_count(pStmt)   (size_t)sqlite3_column_count(pStmt)
 #define sqlite3_column_text(pStmt, i) (const char*)sqlite3_column_text(pStmt, i)

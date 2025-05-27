@@ -3,6 +3,24 @@
 
 DB_TABLE_DEFINE(_TABS, tabs, TabsColumn)
 
+static void db_parse_tab(Db* db, sqlite3_stmt* stmt, Tab* tab) {
+    UNUSED(db);
+    size_t col = 0;
+
+    tab->id = sqlite3_column_int(stmt, col++);
+    m_string_set(tab->name, sqlite3_column_text(stmt, col++));
+    m_string_set(tab->icon, sqlite3_column_text(stmt, col++));
+
+    if(sqlite3_column_type(stmt, col) == SQLITE_NULL) {
+        tab->color = (ImColor){{0, 0, 0, 0}};
+    } else {
+        tab->color = sqlite3_column_imcolor(stmt, col);
+    }
+    col++;
+
+    tab->position = sqlite3_column_int(stmt, col++);
+}
+
 void db_do_load_tabs(Db* db, TabList_t* tabs) {
     int32_t res;
     m_string_t sql;
@@ -23,26 +41,15 @@ void db_do_load_tabs(Db* db, TabList_t* tabs) {
     while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
         db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
         Tab* tab = TabList_push_front_new(*tabs);
-
-        size_t col = 0;
-        tab->id = sqlite3_column_int(stmt, col++);
-        m_string_set(tab->name, sqlite3_column_text(stmt, col++));
-        m_string_set(tab->icon, sqlite3_column_text(stmt, col++));
-
-        if(sqlite3_column_type(stmt, col) == SQLITE_NULL) {
-            tab->color = (ImColor){{0, 0, 0, 0}};
-        } else {
-            tab->color = sqlite3_column_imcolor(stmt, col);
-        }
-        col++;
-
-        tab->position = sqlite3_column_int(stmt, col++);
+        db_parse_tab(db, stmt, tab);
     }
 
     res = sqlite3_finalize(stmt);
     db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
 
     m_string_clear(sql);
+
+    tab_list_update_positions(tabs);
 }
 
 void db_do_save_tab(Db* db, const Tab* tab, TabsColumn column) {
@@ -92,4 +99,65 @@ void db_do_save_tab(Db* db, const Tab* tab, TabsColumn column) {
     db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
 
     m_string_clear(sql);
+}
+
+Tab* db_do_create_tab(Db* db, TabList_t* tabs) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    m_string_printf(sql, "INSERT INTO %s DEFAULT VALUES RETURNING ", tabs_table.name);
+    db_append_column_names(&sql, &tabs_table);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+
+    Tab* tab = TabList_push_front_new(*tabs);
+    db_parse_tab(db, stmt, tab);
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+
+    tab_list_update_positions(tabs);
+    return tab;
+}
+
+void db_do_delete_tab(Db* db, const Tab* tab, TabList_t* tabs) {
+    TabId id = -1;
+    TabList_it_t it;
+    for(TabList_it(it, *tabs); !TabList_end_p(it); TabList_next(it)) {
+        if(TabList_cref(it) == tab) {
+            id = tab->id;
+            TabList_remove(*tabs, it);
+            break;
+        }
+    }
+    assert(id >= 0);
+
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    m_string_printf(sql, "DELETE FROM %s WHERE id=?", tabs_table.name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    res = sqlite3_bind_int(stmt, 1, id);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
+
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_DONE, "sqlite3_step()");
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+
+    tab_list_update_positions(tabs);
 }

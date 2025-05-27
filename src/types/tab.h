@@ -16,35 +16,10 @@ typedef struct {
     int32_t position;
 } Tab;
 
-static void Tab_init(Tab* tab) {
-    tab->id = 0;
-    m_string_init(tab->name);
-    m_string_init(tab->icon);
-    tab->color = (ImColor){{0, 0, 0, 0}};
-    tab->position = 0;
-}
-
-static void Tab_init_set(Tab* tab, const Tab* src) {
-    tab->id = src->id;
-    m_string_init_set(tab->name, src->name);
-    m_string_init_set(tab->icon, src->icon);
-    tab->color = src->color;
-    tab->position = src->position;
-}
-
-static void Tab_set(Tab* tab, const Tab* src) {
-    tab->id = src->id;
-    m_string_set(tab->name, src->name);
-    m_string_set(tab->icon, src->icon);
-    tab->color = src->color;
-    tab->position = src->position;
-}
-
-static void Tab_clear(Tab* tab) {
-    m_string_clear(tab->name);
-    m_string_clear(tab->icon);
-}
-
+void Tab_init(Tab* tab);
+void Tab_init_set(Tab* tab, const Tab* src);
+void Tab_set(Tab* tab, const Tab* src);
+void Tab_clear(Tab* tab);
 #define M_OPL_Tab()                 \
     (INIT(API_2(Tab_init)),         \
      SET(API_6(Tab_set)),           \
@@ -55,3 +30,5 @@ static void Tab_clear(Tab* tab) {
 
 M_LIST_DUAL_PUSH_DEF(TabList, Tab)
 #define M_OPL_TabList_t() M_LIST_OPLIST(TabList)
+
+void tab_list_update_positions(TabList_t* tabs);

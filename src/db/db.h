@@ -16,4 +16,6 @@ void db_load_settings(Db* db, Settings* settings);
 void db_save_setting(Db* db, const Settings* settings, SettingsColumn column);
 void db_load_tabs(Db* db, TabList_t* tabs);
 void db_save_tab(Db* db, const Tab* tab, TabsColumn column);
+Tab* db_create_tab(Db* db, TabList_t* tabs);
+void db_delete_tab(Db* db, const Tab* tab, TabList_t* tabs);
 void db_free(Db* db);
