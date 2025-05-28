@@ -578,83 +578,13 @@ class Review:
 
 @dataclasses.dataclass(slots=True)
 class Label:
-    id: int
-    name: str
-    color: tuple[float]
-    instances: typing.ClassVar = []
-
     @property
     def short_name(self):
         return "".join(word[:1] for word in self.name.split(" "))
 
-    @classmethod
-    def add(cls, *args, **kwargs):
-        if args and isinstance(obj := args[0], cls):
-            self = obj
-        else:
-            self = cls(*args, **kwargs)
-        if self in cls.instances:
-            return
-        cls.instances.append(self)
-
-    @classmethod
-    def get(cls, id: int):
-        for self in cls.instances:
-            if self.id == id:
-                return self
-
-    @classmethod
-    def remove(cls, self):
-        while self in cls.instances:
-            cls.instances.remove(self)
-
 
 @dataclasses.dataclass(slots=True)
 class Tab:
-    id: int
-    name: str
-    icon: str
-    color: tuple[float] | None
-    position: int
-    instances: typing.ClassVar = []
-
-    @classmethod
-    def add(cls, *args, **kwargs):
-        if args and isinstance(obj := args[0], cls):
-            self = obj
-        else:
-            self = cls(*args, **kwargs)
-        if self in cls.instances:
-            return
-        cls.instances.append(self)
-
-    @classmethod
-    def get(cls, id: int):
-        for self in cls.instances:
-            if self.id == id:
-                return self
-
-    @classmethod
-    def remove(cls, self):
-        while self in cls.instances:
-            cls.instances.remove(self)
-        cls.sort_instances()
-
-    @classmethod
-    def update_positions(cls):
-        for self_i, self in enumerate(cls.instances):
-            self.position = self_i
-
-    @classmethod
-    def sort_instances(cls):
-        cls.instances.sort(key=lambda self: self.position)
-        cls.update_positions()
-
-    @classmethod
-    def base_icon(cls):
-        from modules import icons
-        return icons.heart_box
-
     @classmethod
     def first_tab_label(cls):
         from modules import globals, icons
@@ -662,9 +592,6 @@ class Tab:
             return f"{icons.alert_decagram} New"
         else:
             return f"{icons.heart_box} Default"
-
-    def __hash__(self):
-        return hash(self.id)
 
 
 @dataclasses.dataclass(slots=True)

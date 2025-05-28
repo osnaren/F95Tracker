@@ -69,13 +69,13 @@
     COLUMN($, software_webview, .type = "INTEGER", .dflt = "0")                                  \
     COLUMN($, start_in_background, .type = "INTEGER", .dflt = "0")                               \
     COLUMN($, start_refresh, .type = "INTEGER", .dflt = "0")                                     \
-    COLUMN($, style_accent, .type = "TEXT", .dflt = "'" DEFAULT_STYLE_ACCENT_HEX "'")            \
-    COLUMN($, style_alt_bg, .type = "TEXT", .dflt = "'" DEFAULT_STYLE_ALT_BG_HEX "'")            \
-    COLUMN($, style_bg, .type = "TEXT", .dflt = "'" DEFAULT_STYLE_BG_HEX "'")                    \
-    COLUMN($, style_border, .type = "TEXT", .dflt = "'" DEFAULT_STYLE_BORDER_HEX "'")            \
-    COLUMN($, style_corner_radius, .type = "INTEGER", .dflt = XSTR(DEFAULT_STYLE_CORNER_RADIUS)) \
-    COLUMN($, style_text, .type = "TEXT", .dflt = "'" DEFAULT_STYLE_TEXT_HEX "'")                \
-    COLUMN($, style_text_dim, .type = "TEXT", .dflt = "'" DEFAULT_STYLE_TEXT_DIM_HEX "'")        \
+    COLUMN($, style_accent, .type = "TEXT", .dflt = "'" SETTINGS_DFLT_STYLE_ACCENT "'")          \
+    COLUMN($, style_alt_bg, .type = "TEXT", .dflt = "'" SETTINGS_DFLT_STYLE_ALT_BG "'")          \
+    COLUMN($, style_bg, .type = "TEXT", .dflt = "'" SETTINGS_DFLT_STYLE_BG "'")                  \
+    COLUMN($, style_border, .type = "TEXT", .dflt = "'" SETTINGS_DFLT_STYLE_BORDER "'")          \
+    COLUMN($, style_corner_radius, .type = "INTEGER", .dflt = XSTR(SETTINGS_DFLT_STYLE_CORNERS)) \
+    COLUMN($, style_text, .type = "TEXT", .dflt = "'" SETTINGS_DFLT_STYLE_TEXT "'")              \
+    COLUMN($, style_text_dim, .type = "TEXT", .dflt = "'" SETTINGS_DFLT_STYLE_TEXT_DIM "'")      \
     COLUMN($, table_header_outside_list, .type = "INTEGER", .dflt = "1")                         \
     COLUMN($, tags_highlights, .type = "TEXT", .dflt = "'{}'")                                   \
     COLUMN($, tex_compress, .type = "INTEGER", .dflt = "1") /* TexCompress_Disabled */           \

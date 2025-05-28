@@ -103,24 +103,6 @@ async def connect():
         }
     )
     await create_table(
-        table_name="labels",
-        columns={
-            "id":                          f'INTEGER PRIMARY KEY AUTOINCREMENT',
-            "name":                        f'TEXT    DEFAULT ""',
-            "color":                       f'TEXT    DEFAULT "#696969"',
-        }
-    )
-    await create_table(
-        table_name="tabs",
-        columns={
-            "id":                          f'INTEGER PRIMARY KEY AUTOINCREMENT',
-            "name":                        f'TEXT    DEFAULT ""',
-            "icon":                        f'TEXT    DEFAULT "{Tab.base_icon()}"',
-            "color":                       f'TEXT    DEFAULT NULL',
-            "position":                    f'INTEGER DEFAULT 0',
-        }
-    )
-    await create_table(
         table_name="timeline_events",
         columns={
             "game_id":                     f'INTEGER DEFAULT NULL',
@@ -196,28 +178,6 @@ async def load_games(id: int = None):
 
 
 async def load():
-    cursor = await connection.execute("""
-        SELECT *
-        FROM labels
-    """)
-    for label in await cursor.fetchall():
-        Label.add(row_to_cls(label, Label))
-
-    cursor = await connection.execute("""
-        SELECT *
-        FROM tabs
-    """)
-    for tab in await cursor.fetchall():
-        Tab.add(row_to_cls(tab, Tab))
-    Tab.sort_instances()
-
-    # Settings need Tabs to be loaded
-    cursor = await connection.execute("""
-        SELECT *
-        FROM settings
-    """)
-    globals.settings = row_to_cls(await cursor.fetchone(), Settings)
-
     # Games need Tabs and Labels to be loaded
     globals.games = {}
     await load_games()
@@ -346,21 +306,6 @@ async def create_game(thread: ThreadMatch | SearchResult = None, custom=False):
         return thread.id
 
 
-async def update_label(label: Label, *keys: list[str]):
-    values = []
-
-    for key in keys:
-        value = py_to_sql(getattr(label, key))
-        values.append(value)
-
-    await connection.execute(f"""
-        UPDATE labels
-        SET
-            {", ".join(f"{key} = ?" for key in keys)}
-        WHERE id={label.id}
-    """, tuple(values))
-
-
 async def delete_label(label: Label):
     await connection.execute(f"""
         DELETE FROM labels
@@ -373,36 +318,6 @@ async def delete_label(label: Label):
         if flt.match is label:
             globals.gui.filters.remove(flt)
     Label.remove(label)
-
-
-async def create_label():
-    cursor = await connection.execute(f"""
-        INSERT INTO labels
-        DEFAULT VALUES
-    """)
-    cursor = await connection.execute(f"""
-        SELECT *
-        FROM labels
-        WHERE id={cursor.lastrowid}
-    """)
-    label = row_to_cls(await cursor.fetchone(), Label)
-    Label.add(label)
-    return label
-
-
-async def update_tab(tab: Tab, *keys: list[str]):
-    values = []
-
-    for key in keys:
-        value = py_to_sql(getattr(tab, key))
-        values.append(value)
-
-    await connection.execute(f"""
-        UPDATE tabs
-        SET
-            {", ".join(f"{key} = ?" for key in keys)}
-        WHERE id={tab.id}
-    """, tuple(values))
 
 
 async def delete_tab(tab: Tab):
@@ -419,22 +334,6 @@ async def delete_tab(tab: Tab):
     Tab.remove(tab)
     if globals.gui:
         globals.gui.recalculate_ids = True
-
-
-async def create_tab():
-    cursor = await connection.execute(f"""
-        INSERT INTO tabs
-        DEFAULT VALUES
-    """)
-    cursor = await connection.execute(f"""
-        SELECT *
-        FROM tabs
-        WHERE id={cursor.lastrowid}
-    """)
-    tab = row_to_cls(await cursor.fetchone(), Tab)
-    Tab.add(tab)
-    Tab.update_positions()
-    return tab
 
 
 async def create_timeline_event(game_id: int, timestamp: Timestamp, arguments: list[str], type: TimelineEventType):

@@ -80,6 +80,8 @@ void gui_window_draw(Gui* gui) {
         db_save_setting(app.db, app.settings, SettingsColumn_hidden_timeline_events);
     }
 
+    ImGui_BeginGroup();
+    ImGui_AlignTextToFramePadding();
     ImGui_Text("Tabs:");
     if(ImGui_Button("Test add new tab")) {
         Tab* tab = db_create_tab(app.db, &app.tabs);
@@ -94,9 +96,33 @@ void gui_window_draw(Gui* gui) {
                 continue;
             }
             ImGui_SameLine();
-            ImGui_Text("%d %s", tab->position, m_string_get_cstr(tab->name));
+            ImGui_Text("%d %d %s", tab->position, tab->id, m_string_get_cstr(tab->name));
             ImGui_PopID();
         }
+    ImGui_EndGroup();
+
+    ImGui_SameLine();
+
+    ImGui_BeginGroup();
+    ImGui_AlignTextToFramePadding();
+    ImGui_Text("Labels:");
+    if(ImGui_Button("Test add new label")) {
+        Label* label = db_create_label(app.db, &app.labels);
+        UNUSED(label);
+    }
+    for
+        M_EACH(label, app.labels, LabelList_t) {
+            ImGui_PushIDInt(label->id);
+            if(ImGui_Button(mdi_trash_can_outline)) {
+                db_delete_label(app.db, label, &app.labels);
+                ImGui_PopID();
+                continue;
+            }
+            ImGui_SameLine();
+            ImGui_Text("%d %d %s", label->position, label->id, m_string_get_cstr(label->name));
+            ImGui_PopID();
+        }
+    ImGui_EndGroup();
 
     ImGui_End();
 }

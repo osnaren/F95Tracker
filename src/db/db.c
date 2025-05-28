@@ -423,6 +423,52 @@ void db_delete_tab(Db* db, const Tab* tab, TabList_t* tabs) {
     db_send_message_async(db, message);
 }
 
+void db_load_labels(Db* db, LabelList_t* labels) {
+    const DbMessage message = {
+        .type = DbMessageType_LoadLabels,
+        .load.labels = labels,
+    };
+    db_send_message_blocking(db, message);
+}
+
+void db_save_label(Db* db, const Label* label, LabelsColumn column) {
+    const DbMessage message = {
+        .type = DbMessageType_SaveLabel,
+        .save.label =
+            {
+                .ptr = label,
+                .column = column,
+            },
+    };
+    db_send_message_async(db, message);
+}
+
+Label* db_create_label(Db* db, LabelList_t* labels) {
+    Label* label;
+    const DbMessage message = {
+        .type = DbMessageType_CreateLabel,
+        .create.label =
+            {
+                .labels = labels,
+                .out = &label,
+            },
+    };
+    db_send_message_blocking(db, message);
+    return label;
+}
+
+void db_delete_label(Db* db, const Label* label, LabelList_t* labels) {
+    const DbMessage message = {
+        .type = DbMessageType_DeleteLabel,
+        .delete.label =
+            {
+                .ptr = label,
+                .labels = labels,
+            },
+    };
+    db_send_message_async(db, message);
+}
+
 static void db_thread(void* ctx) {
     Db* db = ctx;
     bool quit = false;
@@ -453,6 +499,18 @@ static void db_thread(void* ctx) {
             break;
         case DbMessageType_DeleteTab:
             db_do_delete_tab(db, message.delete.tab.ptr, message.delete.tab.tabs);
+            break;
+        case DbMessageType_LoadLabels:
+            db_do_load_labels(db, message.load.labels);
+            break;
+        case DbMessageType_SaveLabel:
+            db_do_save_label(db, message.save.label.ptr, message.save.label.column);
+            break;
+        case DbMessageType_CreateLabel:
+            *message.create.label.out = db_do_create_label(db, message.create.label.labels);
+            break;
+        case DbMessageType_DeleteLabel:
+            db_do_delete_label(db, message.delete.label.ptr, message.delete.label.labels);
             break;
         }
         if(message.eflag != NULL) {

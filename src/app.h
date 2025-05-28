@@ -10,6 +10,7 @@ typedef struct {
     Db* db;
     Gui* gui;
     TabList_t tabs;
+    LabelList_t labels;
     Settings* settings;
 } App;
 

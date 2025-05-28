@@ -4,7 +4,7 @@
 #include <fonts/mdi.h>
 #include <std.h>
 
-#define DEFAULT_TAB_ICON_STR mdi_heart_box
+#define TAB_DFLT_ICON mdi_heart_box
 
 typedef int32_t TabId;
 

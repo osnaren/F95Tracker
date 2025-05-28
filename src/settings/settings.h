@@ -9,13 +9,13 @@
 #include <dcimgui/dcimgui.h>
 #include <std.h>
 
-#define DEFAULT_STYLE_ACCENT_HEX    "#d4202e"
-#define DEFAULT_STYLE_ALT_BG_HEX    "#101010"
-#define DEFAULT_STYLE_BG_HEX        "#0a0a0a"
-#define DEFAULT_STYLE_BORDER_HEX    "#454545"
-#define DEFAULT_STYLE_CORNER_RADIUS 6
-#define DEFAULT_STYLE_TEXT_HEX      "#ffffff"
-#define DEFAULT_STYLE_TEXT_DIM_HEX  "#808080"
+#define SETTINGS_DFLT_STYLE_ACCENT   "#d4202e"
+#define SETTINGS_DFLT_STYLE_ALT_BG   "#101010"
+#define SETTINGS_DFLT_STYLE_BG       "#0a0a0a"
+#define SETTINGS_DFLT_STYLE_BORDER   "#454545"
+#define SETTINGS_DFLT_STYLE_CORNERS  6
+#define SETTINGS_DFLT_STYLE_TEXT     "#ffffff"
+#define SETTINGS_DFLT_STYLE_TEXT_DIM "#808080"
 
 // FIXME: implement missing fields
 typedef struct {

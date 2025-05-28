@@ -1,0 +1,148 @@
+#include "labels.h"
+#include "db_i.h"
+
+DB_TABLE_DEFINE(_LABELS, labels, LabelsColumn)
+
+static void db_parse_label(Db* db, sqlite3_stmt* stmt, Label* label) {
+    UNUSED(db);
+    size_t col = 0;
+
+    label->id = sqlite3_column_int(stmt, col++);
+    m_string_set(label->name, sqlite3_column_text(stmt, col++));
+    label->color = sqlite3_column_imcolor(stmt, col++);
+    label->position = sqlite3_column_int(stmt, col++);
+}
+
+void db_do_load_labels(Db* db, LabelList_t* labels) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    // Create the table and handle schema migrations
+    db_create_table(db, &labels_table);
+
+    // Read all labels
+    m_string_set(sql, "SELECT ");
+    db_append_column_names(&sql, &labels_table);
+    m_string_cat_printf(sql, " FROM %s ORDER BY position ASC", labels_table.name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    assert(sqlite3_column_count(stmt) == labels_table.columns_count);
+    while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
+        db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+        Label* label = LabelList_push_front_new(*labels);
+        db_parse_label(db, stmt, label);
+    }
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+
+    label_list_update_positions(labels);
+}
+
+void db_do_save_label(Db* db, const Label* label, LabelsColumn column) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    m_string_printf(
+        sql,
+        "UPDATE %s SET %s=? WHERE id=?",
+        labels_table.name,
+        labels_table.columns[column].name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    res = sqlite3_bind_int(stmt, 2, label->id);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
+
+    switch(column) {
+    case LabelsColumn_id:
+        res = sqlite3_bind_int(stmt, 1, label->id);
+        break;
+    case LabelsColumn_name:
+        res = sqlite3_bind_mstring(stmt, 1, label->name);
+        break;
+    case LabelsColumn_color:
+        res = sqlite3_bind_imcolor(stmt, 1, label->color);
+        break;
+    case LabelsColumn_position:
+        res = sqlite3_bind_int(stmt, 1, label->position);
+        break;
+    }
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_*()");
+
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_DONE, "sqlite3_step()");
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+}
+
+Label* db_do_create_label(Db* db, LabelList_t* labels) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    m_string_printf(sql, "INSERT INTO %s DEFAULT VALUES RETURNING ", labels_table.name);
+    db_append_column_names(&sql, &labels_table);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+
+    Label* label = LabelList_push_front_new(*labels);
+    db_parse_label(db, stmt, label);
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+
+    label_list_update_positions(labels);
+    return label;
+}
+
+void db_do_delete_label(Db* db, const Label* label, LabelList_t* labels) {
+    LabelId id = -1;
+    LabelList_it_t it;
+    for(LabelList_it(it, *labels); !LabelList_end_p(it); LabelList_next(it)) {
+        if(LabelList_cref(it) == label) {
+            id = label->id;
+            LabelList_remove(*labels, it);
+            break;
+        }
+    }
+    assert(id >= 0);
+
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    m_string_printf(sql, "DELETE FROM %s WHERE id=?", labels_table.name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    res = sqlite3_bind_int(stmt, 1, id);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
+
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_DONE, "sqlite3_step()");
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+
+    label_list_update_positions(labels);
+}
