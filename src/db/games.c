@@ -1,0 +1,312 @@
+#include "games.h"
+#include "db_i.h"
+
+DB_TABLE_DEFINE(_GAMES, games, GamesColumn)
+
+static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
+    UNUSED(db);
+    size_t col = 0;
+
+    // FIXME: load missing fields
+    game->id = sqlite3_column_int(stmt, col++);
+    // game->custom = sqlite3_column_int(stmt, col++);
+    col++;
+    m_string_set(game->name, sqlite3_column_text(stmt, col++));
+    m_string_set(game->version, sqlite3_column_text(stmt, col++));
+    m_string_set(game->developer, sqlite3_column_text(stmt, col++));
+    game->type = sqlite3_column_int(stmt, col++);
+    game->status = sqlite3_column_int(stmt, col++);
+    m_string_set(game->url, sqlite3_column_text(stmt, col++));
+    // game->added_on = sqlite3_column_int(stmt, col++);
+    col++;
+    // game->last_updated = sqlite3_column_int(stmt, col++);
+    col++;
+    // game->last_full_check = sqlite3_column_int(stmt, col++);
+    col++;
+    m_string_set(game->last_check_version, sqlite3_column_text(stmt, col++));
+    // game->last_launched = sqlite3_column_int(stmt, col++);
+    col++;
+    game->score = sqlite3_column_int(stmt, col++);
+    game->votes = sqlite3_column_int(stmt, col++);
+    game->rating = sqlite3_column_int(stmt, col++);
+    m_string_set(game->finished, sqlite3_column_text(stmt, col++));
+    m_string_set(game->installed, sqlite3_column_text(stmt, col++));
+    // game->updated = sqlite3_column_int(stmt, col++);
+    col++;
+    game->archived = sqlite3_column_int(stmt, col++);
+    // game->executables = sqlite3_column_int(stmt, col++);
+    col++;
+    m_string_set(game->description, sqlite3_column_text(stmt, col++));
+    m_string_set(game->changelog, sqlite3_column_text(stmt, col++));
+    // game->tags = sqlite3_column_int(stmt, col++);
+    col++;
+    // game->unknown_tags = sqlite3_column_int(stmt, col++);
+    col++;
+    game->unknown_tags_flag = sqlite3_column_int(stmt, col++);
+    // game->labels = sqlite3_column_int(stmt, col++);
+    col++;
+    // game->tab = sqlite3_column_int(stmt, col++);
+    col++;
+    m_string_set(game->notes, sqlite3_column_text(stmt, col++));
+    m_string_set(game->image_url, sqlite3_column_text(stmt, col++));
+    // game->previews_urls = sqlite3_column_int(stmt, col++);
+    col++;
+    // game->downloads = sqlite3_column_int(stmt, col++);
+    col++;
+    game->reviews_total = sqlite3_column_int(stmt, col++);
+    // game->reviews = sqlite3_column_int(stmt, col++);
+    col++;
+}
+
+void db_do_load_games(Db* db, GameDict_t* games) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    // Create the table and handle schema migrations
+    db_create_table(db, &games_table);
+
+    // Read all games
+    m_string_set(sql, "SELECT ");
+    db_append_column_names(&sql, &games_table);
+    m_string_cat_printf(sql, " FROM %s", games_table.name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    assert(sqlite3_column_count(stmt) == games_table.columns_count);
+    while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
+        db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+        Game* game = game_init();
+        db_parse_game(db, stmt, game);
+        GameDict_set_at(*games, game->id, game);
+    }
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+}
+
+void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    m_string_printf(
+        sql,
+        "UPDATE %s SET %s=? WHERE id=?",
+        games_table.name,
+        games_table.columns[column].name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    res = sqlite3_bind_int(stmt, 2, game->id);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
+
+    // FIXME: save missing fields
+    switch(column) {
+    case GamesColumn_id:
+        res = sqlite3_bind_int(stmt, 1, game->id);
+        break;
+    case GamesColumn_custom:
+        // res = sqlite3_bind_int(stmt, 1, game->custom);
+        break;
+    case GamesColumn_name:
+        res = sqlite3_bind_mstring(stmt, 1, game->name);
+        break;
+    case GamesColumn_version:
+        res = sqlite3_bind_mstring(stmt, 1, game->version);
+        break;
+    case GamesColumn_developer:
+        res = sqlite3_bind_mstring(stmt, 1, game->developer);
+        break;
+    case GamesColumn_type:
+        res = sqlite3_bind_int(stmt, 1, game->type);
+        break;
+    case GamesColumn_status:
+        res = sqlite3_bind_int(stmt, 1, game->status);
+        break;
+    case GamesColumn_url:
+        res = sqlite3_bind_mstring(stmt, 1, game->url);
+        break;
+    case GamesColumn_added_on:
+        // res = sqlite3_bind_int(stmt, 1, game->added_on);
+        break;
+    case GamesColumn_last_updated:
+        // res = sqlite3_bind_int(stmt, 1, game->last_updated);
+        break;
+    case GamesColumn_last_full_check:
+        // res = sqlite3_bind_int(stmt, 1, game->last_full_check);
+        break;
+    case GamesColumn_last_check_version:
+        res = sqlite3_bind_mstring(stmt, 1, game->last_check_version);
+        break;
+    case GamesColumn_last_launched:
+        // res = sqlite3_bind_int(stmt, 1, game->last_launched);
+        break;
+    case GamesColumn_score:
+        res = sqlite3_bind_int(stmt, 1, game->score);
+        break;
+    case GamesColumn_votes:
+        res = sqlite3_bind_int(stmt, 1, game->votes);
+        break;
+    case GamesColumn_rating:
+        res = sqlite3_bind_int(stmt, 1, game->rating);
+        break;
+    case GamesColumn_finished:
+        res = sqlite3_bind_mstring(stmt, 1, game->finished);
+        break;
+    case GamesColumn_installed:
+        res = sqlite3_bind_mstring(stmt, 1, game->installed);
+        break;
+    case GamesColumn_updated:
+        // res = sqlite3_bind_int(stmt, 1, game->updated);
+        break;
+    case GamesColumn_archived:
+        res = sqlite3_bind_int(stmt, 1, game->archived);
+        break;
+    case GamesColumn_executables:
+        // res = sqlite3_bind_int(stmt, 1, game->executables);
+        break;
+    case GamesColumn_description:
+        res = sqlite3_bind_mstring(stmt, 1, game->description);
+        break;
+    case GamesColumn_changelog:
+        res = sqlite3_bind_mstring(stmt, 1, game->changelog);
+        break;
+    case GamesColumn_tags:
+        // res = sqlite3_bind_int(stmt, 1, game->tags);
+        break;
+    case GamesColumn_unknown_tags:
+        // res = sqlite3_bind_int(stmt, 1, game->unknown_tags);
+        break;
+    case GamesColumn_unknown_tags_flag:
+        res = sqlite3_bind_int(stmt, 1, game->unknown_tags_flag);
+        break;
+    case GamesColumn_labels:
+        // res = sqlite3_bind_int(stmt, 1, game->labels);
+        break;
+    case GamesColumn_tab:
+        // res = sqlite3_bind_int(stmt, 1, game->tab);
+        break;
+    case GamesColumn_notes:
+        res = sqlite3_bind_mstring(stmt, 1, game->notes);
+        break;
+    case GamesColumn_image_url:
+        res = sqlite3_bind_mstring(stmt, 1, game->image_url);
+        break;
+    case GamesColumn_previews_urls:
+        // res = sqlite3_bind_int(stmt, 1, game->previews_urls);
+        break;
+    case GamesColumn_downloads:
+        // res = sqlite3_bind_int(stmt, 1, game->downloads);
+        break;
+    case GamesColumn_reviews_total:
+        res = sqlite3_bind_int(stmt, 1, game->reviews_total);
+        break;
+    case GamesColumn_reviews:
+        // res = sqlite3_bind_int(stmt, 1, game->reviews);
+        break;
+    }
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_*()");
+
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_DONE, "sqlite3_step()");
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+}
+
+Game* db_do_create_game(Db* db, GameDict_t* games, GameId id) {
+    bool custom = id < 0;
+    if(custom) {
+        id = -1;
+        for
+            M_EACH(pair, *games, GameDict_t) {
+                if(pair->key <= id) {
+                    id = pair->key - 1;
+                }
+            }
+        assert(id < 0);
+    }
+
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    m_string_printf(
+        sql,
+        "INSERT INTO %s (id,custom,name,added_on) VALUES (?,?,?,?) RETURNING ",
+        games_table.name);
+    db_append_column_names(&sql, &games_table);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    // id
+    res = sqlite3_bind_int(stmt, 1, id);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
+
+    // custom
+    res = sqlite3_bind_int(stmt, 2, custom);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
+
+    // name
+    m_string_t name;
+    m_string_init_printf(name, "%s (%d)", custom ? "Custom" : "Unknown", id);
+    res = sqlite3_bind_mstring(stmt, 3, name);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_mstring()");
+    m_string_clear(name);
+
+    // added_on
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    res = sqlite3_bind_int(stmt, 4, ts.tv_sec);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
+
+    assert(sqlite3_column_count(stmt) == games_table.columns_count);
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+
+    Game* game = game_init();
+    db_parse_game(db, stmt, game);
+    GameDict_set_at(*games, game->id, game);
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+    return game;
+}
+
+void db_do_delete_game(Db* db, Game* game, GameDict_t* games) {
+    GameId id = game->id;
+    bool removed = GameDict_erase(*games, id);
+    game_free(game);
+    assert(removed);
+    UNUSED(removed);
+
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    m_string_printf(sql, "DELETE FROM %s WHERE id=?", games_table.name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    res = sqlite3_bind_int(stmt, 1, id);
+    db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
+
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_DONE, "sqlite3_step()");
+
+    res = sqlite3_finalize(stmt);
+    db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
+
+    m_string_clear(sql);
+}

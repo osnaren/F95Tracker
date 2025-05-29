@@ -49,53 +49,6 @@ from modules import (
 
 async def connect():
     await create_table(
-        table_name="games",
-        columns={
-            "id":                          f'INTEGER PRIMARY KEY',
-            "custom":                      f'INTEGER DEFAULT NULL',
-            "name":                        f'TEXT    DEFAULT ""',
-            "version":                     f'TEXT    DEFAULT "Unchecked"',
-            "developer":                   f'TEXT    DEFAULT ""',
-            "type":                        f'INTEGER DEFAULT {Type.Unchecked}',
-            "status":                      f'INTEGER DEFAULT {Status.Unchecked}',
-            "url":                         f'TEXT    DEFAULT ""',
-            "added_on":                    f'INTEGER DEFAULT 0',
-            "last_updated":                f'INTEGER DEFAULT 0',
-            "last_full_check":             f'INTEGER DEFAULT 0',
-            "last_check_version":          f'TEXT    DEFAULT ""',
-            "last_launched":               f'INTEGER DEFAULT 0',
-            "score":                       f'REAL    DEFAULT 0',
-            "votes":                       f'INTEGER DEFAULT 0',
-            "rating":                      f'INTEGER DEFAULT 0',
-            "finished":                    f'TEXT    DEFAULT ""',
-            "installed":                   f'TEXT    DEFAULT ""',
-            "updated":                     f'INTEGER DEFAULT NULL',
-            "archived":                    f'INTEGER DEFAULT {int(False)}',
-            "executables":                 f'TEXT    DEFAULT "[]"',
-            "description":                 f'TEXT    DEFAULT ""',
-            "changelog":                   f'TEXT    DEFAULT ""',
-            "tags":                        f'TEXT    DEFAULT "[]"',
-            "unknown_tags":                f'TEXT    DEFAULT "[]"',
-            "unknown_tags_flag":           f'INTEGER DEFAULT {int(False)}',
-            "labels":                      f'TEXT    DEFAULT "[]"',
-            "tab":                         f'INTEGER DEFAULT NULL',
-            "notes":                       f'TEXT    DEFAULT ""',
-            "image_url":                   f'TEXT    DEFAULT ""',
-            "previews_urls":               f'TEXT    DEFAULT "[]"',
-            "downloads":                   f'TEXT    DEFAULT "[]"',
-            "reviews_total":               f'INTEGER DEFAULT 0',
-            "reviews":                     f'TEXT    DEFAULT "[]"',
-        },
-        renames=[
-            ("executable",           "executables"),
-            ("last_full_refresh",    "last_full_check"),
-            ("last_refresh_version", "last_check_version"),
-            ("played",               "finished"),
-            ("last_played",          "last_launched"),
-        ]
-    )
-
-    await create_table(
         table_name="cookies",
         columns={
             "key":                         f'TEXT    PRIMARY KEY',
@@ -163,25 +116,7 @@ def row_to_cls(row: sqlite3.Row, cls: typing.Type):
     return cls(**data)
 
 
-async def load_games(id: int = None):
-    query = """
-        SELECT *
-        FROM games
-    """
-    if id is not None:
-        query += f"""
-            WHERE id={id}
-        """
-    cursor = await connection.execute(query)
-    for game in await cursor.fetchall():
-        globals.games[game["id"]] = row_to_cls(game, Game)
-
-
 async def load():
-    # Games need Tabs and Labels to be loaded
-    globals.games = {}
-    await load_games()
-
     # TimelineEvents need Games to be loaded
     cursor = await connection.execute("""
         SELECT *
@@ -262,48 +197,6 @@ async def update_game_id(game: Game, new_id):
             pass
     game.id = new_id
     game.refresh_image()
-
-
-async def update_game(game: Game, *keys: list[str]):
-    values = []
-
-    for key in keys:
-        value = py_to_sql(getattr(game, key))
-        values.append(value)
-
-    await connection.execute(f"""
-        UPDATE games
-        SET
-            {", ".join(f"{key} = ?" for key in keys)}
-        WHERE id={game.id}
-    """, tuple(values))
-
-
-async def delete_game(id: int):
-    await connection.execute(f"""
-        DELETE FROM games
-        WHERE id={id}
-    """)
-
-
-async def create_game(thread: ThreadMatch | SearchResult = None, custom=False):
-    if custom:
-        game_id = utils.custom_id()
-        await connection.execute(f"""
-            INSERT INTO games
-            (id, custom, name, added_on, last_updated)
-            VALUES
-            (?,  ?,      ?,    ?,        ?           )
-        """, (game_id, True, f"Custom game ({game_id})", int(time.time()), parser.datestamp(time.time())))
-        return game_id
-    else:
-        await connection.execute(f"""
-            INSERT INTO games
-            (id, custom, name, url, added_on)
-            VALUES
-            (?,  ?,      ?,    ?,   ?       )
-        """, (thread.id, False, thread.title or f"Unknown ({thread.id})", f"{api.f95_threads_page}{thread.id}", int(time.time())))
-        return thread.id
 
 
 async def delete_label(label: Label):

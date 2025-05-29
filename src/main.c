@@ -31,6 +31,9 @@ int32_t main(int32_t argc, char** argv) {
     app.settings = settings_init();
     db_load_settings(app.db, app.settings);
 
+    GameDict_init(app.games);
+    db_load_games(app.db, &app.games);
+
     app.gui = gui_init();
     if(app.gui == NULL) {
         ret = 1;
@@ -45,6 +48,12 @@ int32_t main(int32_t argc, char** argv) {
 exit_gui:
 
     db_free(app.db);
+
+    for
+        M_EACH(pair, app.games, GameDict_t) {
+            game_free(pair->value);
+        }
+    GameDict_clear(app.games);
 
     settings_free(app.settings);
 

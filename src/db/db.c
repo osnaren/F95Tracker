@@ -377,6 +377,53 @@ void db_save_setting(Db* db, const Settings* settings, SettingsColumn column) {
     db_send_message_async(db, message);
 }
 
+void db_load_games(Db* db, GameDict_t* games) {
+    const DbMessage message = {
+        .type = DbMessageType_LoadGames,
+        .load.games = games,
+    };
+    db_send_message_blocking(db, message);
+}
+
+void db_save_game(Db* db, const Game* game, GamesColumn column) {
+    const DbMessage message = {
+        .type = DbMessageType_SaveGame,
+        .save.game =
+            {
+                .ptr = game,
+                .column = column,
+            },
+    };
+    db_send_message_async(db, message);
+}
+
+Game* db_create_game(Db* db, GameDict_t* games, GameId id) {
+    Game* game;
+    const DbMessage message = {
+        .type = DbMessageType_CreateGame,
+        .create.game =
+            {
+                .games = games,
+                .id = id,
+                .out = &game,
+            },
+    };
+    db_send_message_blocking(db, message);
+    return game;
+}
+
+void db_delete_game(Db* db, Game* game, GameDict_t* games) {
+    const DbMessage message = {
+        .type = DbMessageType_DeleteGame,
+        .delete.game =
+            {
+                .ptr = game,
+                .games = games,
+            },
+    };
+    db_send_message_async(db, message);
+}
+
 void db_load_tabs(Db* db, TabList_t* tabs) {
     const DbMessage message = {
         .type = DbMessageType_LoadTabs,
@@ -488,6 +535,20 @@ static void db_thread(void* ctx) {
             break;
         case DbMessageType_SaveSetting:
             db_do_save_setting(db, message.save.setting.ptr, message.save.setting.column);
+            break;
+
+        case DbMessageType_LoadGames:
+            db_do_load_games(db, message.load.games);
+            break;
+        case DbMessageType_SaveGame:
+            db_do_save_game(db, message.save.game.ptr, message.save.game.column);
+            break;
+        case DbMessageType_CreateGame:
+            *message.create.game.out =
+                db_do_create_game(db, message.create.game.games, message.create.game.id);
+            break;
+        case DbMessageType_DeleteGame:
+            db_do_delete_game(db, message.delete.game.ptr, message.delete.game.games);
             break;
 
         case DbMessageType_LoadTabs:

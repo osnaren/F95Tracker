@@ -1,9 +1,11 @@
 #pragma once
 
+#include "games.h"
 #include "labels.h"
 #include "settings.h"
 #include "tabs.h"
 
+#include "game/game.h"
 #include "settings/settings.h"
 #include "types/label.h"
 #include "types/tab.h"
@@ -18,6 +20,11 @@ void db_backup(Db* db);
 
 void db_load_settings(Db* db, Settings* settings);
 void db_save_setting(Db* db, const Settings* settings, SettingsColumn column);
+
+void db_load_games(Db* db, GameDict_t* games);
+void db_save_game(Db* db, const Game* game, GamesColumn column);
+Game* db_create_game(Db* db, GameDict_t* games, GameId id);
+void db_delete_game(Db* db, Game* game, GameDict_t* games);
 
 void db_load_tabs(Db* db, TabList_t* tabs);
 void db_save_tab(Db* db, const Tab* tab, TabsColumn column);

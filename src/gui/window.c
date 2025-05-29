@@ -124,5 +124,11 @@ void gui_window_draw(Gui* gui) {
         }
     ImGui_EndGroup();
 
+    for
+        M_EACH(pair, app.games, GameDict_t) {
+            Game* game = pair->value;
+            ImGui_Text("%d %s", game->id, m_string_get_cstr(game->name));
+        }
+
     ImGui_End();
 }

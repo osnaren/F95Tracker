@@ -14,6 +14,11 @@ typedef struct {
         DbMessageType_LoadSettings,
         DbMessageType_SaveSetting,
 
+        DbMessageType_LoadGames,
+        DbMessageType_SaveGame,
+        DbMessageType_CreateGame,
+        DbMessageType_DeleteGame,
+
         DbMessageType_LoadTabs,
         DbMessageType_SaveTab,
         DbMessageType_CreateTab,
@@ -28,6 +33,7 @@ typedef struct {
     union {
         union {
             Settings* settings;
+            GameDict_t* games;
             TabList_t* tabs;
             LabelList_t* labels;
         } load;
@@ -36,6 +42,10 @@ typedef struct {
                 const Settings* ptr;
                 SettingsColumn column;
             } setting;
+            struct {
+                const Game* ptr;
+                GamesColumn column;
+            } game;
             struct {
                 const Tab* ptr;
                 TabsColumn column;
@@ -47,6 +57,11 @@ typedef struct {
         } save;
         union {
             struct {
+                GameDict_t* games;
+                GameId id;
+                Game** out;
+            } game;
+            struct {
                 TabList_t* tabs;
                 Tab** out;
             } tab;
@@ -56,6 +71,10 @@ typedef struct {
             } label;
         } create;
         union {
+            struct {
+                Game* ptr;
+                GameDict_t* games;
+            } game;
             struct {
                 Tab* ptr;
                 TabList_t* tabs;
@@ -95,6 +114,11 @@ void db_append_column_names(m_string_t* sql, const DbTable* table);
 
 void db_do_load_settings(Db* db, Settings* settings);
 void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column);
+
+void db_do_load_games(Db* db, GameDict_t* games);
+void db_do_save_game(Db* db, const Game* game, GamesColumn column);
+Game* db_do_create_game(Db* db, GameDict_t* games, GameId id);
+void db_do_delete_game(Db* db, Game* game, GameDict_t* games);
 
 void db_do_load_tabs(Db* db, TabList_t* tabs);
 void db_do_save_tab(Db* db, const Tab* tab, TabsColumn column);

@@ -5,6 +5,17 @@
 #include <std.h>
 
 typedef int32_t GameId;
+
+bool GameId_oor_equal(GameId k, char n);
+GameId GameId_oor_set(char n);
+size_t GameId_hash(GameId n);
+#define M_OPL_GameId()                  \
+    M_OPEXTEND(                         \
+        M_BASIC_OPLIST,                 \
+        OOR_EQUAL(GameId_oor_equal),    \
+        OOR_SET(API_4(GameId_oor_set)), \
+        HASH(GameId_hash))
+
 M_ARRAY_DEF(GameIdArray, GameId)
 
 // FIXME: implement missing fields
@@ -19,7 +30,7 @@ typedef struct {
     m_string_t url;
     // Datestamp added_on;
     // Datestamp last_updated;
-    int last_full_check;
+    // int last_full_check;
     m_string_t last_check_version;
     // Datestamp last_launched;
     flt32_t score;
@@ -49,3 +60,9 @@ typedef struct {
     // bool = None executables_valid;
     // list[TimelineEvent] = dataclasses.field(default_factory = list) timeline_events;
 } Game;
+
+Game* game_init(void);
+void game_free(Game* game);
+
+M_DICT_OA_DEF2(GameDict, GameId, M_OPL_GameId(), Game*, M_PTR_OPLIST)
+#define M_OPL_GameDict_t() M_DICT_OPLIST(GameDict)
