@@ -10,12 +10,15 @@ typedef struct {
     enum {
         DbMessageType_Quit,
         DbMessageType_Backup,
+
         DbMessageType_LoadSettings,
         DbMessageType_SaveSetting,
+
         DbMessageType_LoadTabs,
         DbMessageType_SaveTab,
         DbMessageType_CreateTab,
         DbMessageType_DeleteTab,
+
         DbMessageType_LoadLabels,
         DbMessageType_SaveLabel,
         DbMessageType_CreateLabel,
@@ -92,10 +95,12 @@ void db_append_column_names(m_string_t* sql, const DbTable* table);
 
 void db_do_load_settings(Db* db, Settings* settings);
 void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column);
+
 void db_do_load_tabs(Db* db, TabList_t* tabs);
 void db_do_save_tab(Db* db, const Tab* tab, TabsColumn column);
 Tab* db_do_create_tab(Db* db, TabList_t* tabs);
 void db_do_delete_tab(Db* db, const Tab* tab, TabList_t* tabs);
+
 void db_do_load_labels(Db* db, LabelList_t* labels);
 void db_do_save_label(Db* db, const Label* label, LabelsColumn column);
 Label* db_do_create_label(Db* db, LabelList_t* labels);
