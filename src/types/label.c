@@ -4,10 +4,8 @@
 #include <app.h>
 
 void Label_init(Label* label) {
-    label->id = 0;
     m_string_init(label->name);
     label->color = (ImColor){{0, 0, 0, 0}};
-    label->position = 0;
 }
 
 void Label_init_set(Label* label, const Label* src) {

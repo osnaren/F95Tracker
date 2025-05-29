@@ -20,13 +20,13 @@ void Tab_init(Tab* tab);
 void Tab_init_set(Tab* tab, const Tab* src);
 void Tab_set(Tab* tab, const Tab* src);
 void Tab_clear(Tab* tab);
-#define M_OPL_Tab()                 \
-    (INIT(API_2(Tab_init)),         \
-     SET(API_6(Tab_set)),           \
-     INIT_SET(API_6(Tab_init_set)), \
-     CLEAR(API_2(Tab_clear)),       \
-     SWAP(M_SWAP_DEFAULT),          \
-     EQUAL(API_6(M_EQUAL_DEFAULT)))
+#define M_OPL_Tab()                    \
+    M_OPEXTEND(                        \
+        M_POD_OPLIST,                  \
+        INIT(API_2(Tab_init)),         \
+        INIT_SET(API_6(Tab_init_set)), \
+        SET(API_6(Tab_set)),           \
+        CLEAR(API_2(Tab_clear)))
 
 M_LIST_DUAL_PUSH_DEF(TabList, Tab)
 #define M_OPL_TabList_t() M_LIST_OPLIST(TabList)

@@ -4,11 +4,8 @@
 #include <app.h>
 
 void Tab_init(Tab* tab) {
-    tab->id = 0;
     m_string_init(tab->name);
     m_string_init(tab->icon);
-    tab->color = (ImColor){{0, 0, 0, 0}};
-    tab->position = 0;
 }
 
 void Tab_init_set(Tab* tab, const Tab* src) {
