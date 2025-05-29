@@ -112,6 +112,7 @@ Tab* db_do_create_tab(Db* db, TabList_t* tabs) {
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
 
+    assert(sqlite3_column_count(stmt) == tabs_table.columns_count);
     res = sqlite3_step(stmt);
     db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
 
@@ -127,17 +128,19 @@ Tab* db_do_create_tab(Db* db, TabList_t* tabs) {
     return tab;
 }
 
-void db_do_delete_tab(Db* db, const Tab* tab, TabList_t* tabs) {
-    TabId id = -1;
+void db_do_delete_tab(Db* db, Tab* tab, TabList_t* tabs) {
+    TabId id = tab->id;
+    bool removed = false;
     TabList_it_t it;
     for(TabList_it(it, *tabs); !TabList_end_p(it); TabList_next(it)) {
         if(TabList_cref(it) == tab) {
-            id = tab->id;
             TabList_remove(*tabs, it);
+            removed = true;
             break;
         }
     }
-    assert(id >= 0);
+    assert(removed);
+    UNUSED(removed);
 
     int32_t res;
     m_string_t sql;

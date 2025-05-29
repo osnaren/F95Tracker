@@ -411,7 +411,7 @@ Tab* db_create_tab(Db* db, TabList_t* tabs) {
     return tab;
 }
 
-void db_delete_tab(Db* db, const Tab* tab, TabList_t* tabs) {
+void db_delete_tab(Db* db, Tab* tab, TabList_t* tabs) {
     const DbMessage message = {
         .type = DbMessageType_DeleteTab,
         .delete.tab =
@@ -457,7 +457,7 @@ Label* db_create_label(Db* db, LabelList_t* labels) {
     return label;
 }
 
-void db_delete_label(Db* db, const Label* label, LabelList_t* labels) {
+void db_delete_label(Db* db, Label* label, LabelList_t* labels) {
     const DbMessage message = {
         .type = DbMessageType_DeleteLabel,
         .delete.label =
@@ -482,12 +482,14 @@ static void db_thread(void* ctx) {
         case DbMessageType_Backup:
             db_do_backup(db);
             break;
+
         case DbMessageType_LoadSettings:
             db_do_load_settings(db, message.load.settings);
             break;
         case DbMessageType_SaveSetting:
             db_do_save_setting(db, message.save.setting.ptr, message.save.setting.column);
             break;
+
         case DbMessageType_LoadTabs:
             db_do_load_tabs(db, message.load.tabs);
             break;
@@ -500,6 +502,7 @@ static void db_thread(void* ctx) {
         case DbMessageType_DeleteTab:
             db_do_delete_tab(db, message.delete.tab.ptr, message.delete.tab.tabs);
             break;
+
         case DbMessageType_LoadLabels:
             db_do_load_labels(db, message.load.labels);
             break;
@@ -513,6 +516,7 @@ static void db_thread(void* ctx) {
             db_do_delete_label(db, message.delete.label.ptr, message.delete.label.labels);
             break;
         }
+
         if(message.eflag != NULL) {
             m_eflag_broadcast(*message.eflag);
         }

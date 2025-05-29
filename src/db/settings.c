@@ -5,36 +5,11 @@
 
 DB_TABLE_DEFINE(_SETTINGS, settings, SettingsColumn)
 
-void db_do_load_settings(Db* db, Settings* settings) {
-    int32_t res;
-    m_string_t sql;
-    m_string_init(sql);
-
-    // Create the table and handle schema migrations
-    db_create_table(db, &settings_table);
-
-    // Insert the main settings row
-    m_string_printf(
-        sql,
-        "INSERT INTO %s (_) VALUES (0) ON CONFLICT DO NOTHING",
-        settings_table.name);
-    res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
-    db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
-
-    // Read the main settings row
-    m_string_set(sql, "SELECT ");
-    db_append_column_names(&sql, &settings_table);
-    m_string_cat_printf(sql, " FROM %s", settings_table.name);
-    sqlite3_stmt* stmt;
-    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
-    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
-
-    res = sqlite3_step(stmt);
-    db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
+    UNUSED(db);
+    size_t col = 1; // Skip _ column
 
     // FIXME: load missing fields
-    assert(sqlite3_column_count(stmt) == settings_table.columns_count);
-    size_t col = 1; // Skip _ column
     settings->background_on_close = sqlite3_column_int(stmt, col++);
     settings->bg_notifs_interval = sqlite3_column_int(stmt, col++);
     settings->bg_refresh_interval = sqlite3_column_int(stmt, col++);
@@ -184,6 +159,36 @@ void db_do_load_settings(Db* db, Settings* settings) {
     settings->zoom_area = sqlite3_column_int(stmt, col++);
     settings->zoom_enabled = sqlite3_column_int(stmt, col++);
     settings->zoom_times = sqlite3_column_int(stmt, col++);
+}
+
+void db_do_load_settings(Db* db, Settings* settings) {
+    int32_t res;
+    m_string_t sql;
+    m_string_init(sql);
+
+    // Create the table and handle schema migrations
+    db_create_table(db, &settings_table);
+
+    // Insert the main settings row
+    m_string_printf(
+        sql,
+        "INSERT INTO %s (_) VALUES (0) ON CONFLICT DO NOTHING",
+        settings_table.name);
+    res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
+
+    // Read the main settings row
+    m_string_set(sql, "SELECT ");
+    db_append_column_names(&sql, &settings_table);
+    m_string_cat_printf(sql, " FROM %s", settings_table.name);
+    sqlite3_stmt* stmt;
+    res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
+    db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
+
+    assert(sqlite3_column_count(stmt) == settings_table.columns_count);
+    res = sqlite3_step(stmt);
+    db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
+    db_parse_settings(db, stmt, settings);
 
     res = sqlite3_finalize(stmt);
     db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");

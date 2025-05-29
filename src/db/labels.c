@@ -97,6 +97,7 @@ Label* db_do_create_label(Db* db, LabelList_t* labels) {
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
 
+    assert(sqlite3_column_count(stmt) == labels_table.columns_count);
     res = sqlite3_step(stmt);
     db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
 
@@ -112,17 +113,19 @@ Label* db_do_create_label(Db* db, LabelList_t* labels) {
     return label;
 }
 
-void db_do_delete_label(Db* db, const Label* label, LabelList_t* labels) {
-    LabelId id = -1;
+void db_do_delete_label(Db* db, Label* label, LabelList_t* labels) {
+    LabelId id = label->id;
+    bool removed = false;
     LabelList_it_t it;
     for(LabelList_it(it, *labels); !LabelList_end_p(it); LabelList_next(it)) {
         if(LabelList_cref(it) == label) {
-            id = label->id;
             LabelList_remove(*labels, it);
+            removed = true;
             break;
         }
     }
-    assert(id >= 0);
+    assert(removed);
+    UNUSED(removed);
 
     int32_t res;
     m_string_t sql;
