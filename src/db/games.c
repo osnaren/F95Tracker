@@ -17,15 +17,11 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     game->type = sqlite3_column_int(stmt, col++);
     game->status = sqlite3_column_int(stmt, col++);
     m_string_set(game->url, sqlite3_column_text(stmt, col++));
-    // game->added_on = sqlite3_column_int(stmt, col++);
-    col++;
-    // game->last_updated = sqlite3_column_int(stmt, col++);
-    col++;
-    // game->last_full_check = sqlite3_column_int(stmt, col++);
-    col++;
+    game->added_on = sqlite3_column_int64(stmt, col++);
+    game->last_updated = sqlite3_column_int64(stmt, col++);
+    game->last_full_check = sqlite3_column_int64(stmt, col++);
     m_string_set(game->last_check_version, sqlite3_column_text(stmt, col++));
-    // game->last_launched = sqlite3_column_int(stmt, col++);
-    col++;
+    game->last_launched = sqlite3_column_int64(stmt, col++);
     game->score = sqlite3_column_int(stmt, col++);
     game->votes = sqlite3_column_int(stmt, col++);
     game->rating = sqlite3_column_int(stmt, col++);
@@ -132,19 +128,19 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         res = sqlite3_bind_mstring(stmt, 1, game->url);
         break;
     case GamesColumn_added_on:
-        // res = sqlite3_bind_int(stmt, 1, game->added_on);
+        res = sqlite3_bind_int64(stmt, 1, game->added_on);
         break;
     case GamesColumn_last_updated:
-        // res = sqlite3_bind_int(stmt, 1, game->last_updated);
+        res = sqlite3_bind_int64(stmt, 1, game->last_updated);
         break;
     case GamesColumn_last_full_check:
-        // res = sqlite3_bind_int(stmt, 1, game->last_full_check);
+        res = sqlite3_bind_int64(stmt, 1, game->last_full_check);
         break;
     case GamesColumn_last_check_version:
         res = sqlite3_bind_mstring(stmt, 1, game->last_check_version);
         break;
     case GamesColumn_last_launched:
-        // res = sqlite3_bind_int(stmt, 1, game->last_launched);
+        res = sqlite3_bind_int64(stmt, 1, game->last_launched);
         break;
     case GamesColumn_score:
         res = sqlite3_bind_int(stmt, 1, game->score);
@@ -265,7 +261,7 @@ Game* db_do_create_game(Db* db, GameDict_t* games, GameId id) {
     // added_on
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
-    res = sqlite3_bind_int(stmt, 4, ts.tv_sec);
+    res = sqlite3_bind_int64(stmt, 4, ts.tv_sec);
     db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
 
     assert(sqlite3_column_count(stmt) == games_table.columns_count);

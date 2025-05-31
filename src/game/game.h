@@ -2,6 +2,8 @@
 
 #include "enums.h"
 
+#include "types/datetime.h"
+
 #include <std.h>
 
 typedef int32_t GameId;
@@ -28,11 +30,11 @@ typedef struct {
     GameType type;
     GameStatus status;
     m_string_t url;
-    // Datestamp added_on;
-    // Datestamp last_updated;
-    // int last_full_check;
+    Datestamp added_on;
+    Datestamp last_updated;
+    Timestamp last_full_check;
     m_string_t last_check_version;
-    // Datestamp last_launched;
+    Datestamp last_launched;
     flt32_t score;
     uint32_t votes;
     uint8_t rating;

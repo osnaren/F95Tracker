@@ -88,8 +88,7 @@ static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
     settings->independent_tab_views = sqlite3_column_int(stmt, col++);
     settings->insecure_ssl = sqlite3_column_int(stmt, col++);
     settings->interface_scaling = sqlite3_column_double(stmt, col++);
-    // settings->last_successful_refresh = sqlite3_column_int(stmt, column_i++);
-    col++;
+    settings->last_successful_refresh = sqlite3_column_int64(stmt, col++);
 
     json_object* manual_sort_list_json = sqlite3_column_json(stmt, col++);
     GameIdArray_resize(settings->manual_sort_list, json_object_array_length(manual_sort_list_json));
@@ -344,7 +343,7 @@ void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column)
         res = sqlite3_bind_int(stmt, 1, settings->interface_scaling);
         break;
     case SettingsColumn_last_successful_refresh:
-        // res = sqlite3_bind_int(stmt, 1, settings->last_successful_refresh);
+        res = sqlite3_bind_int64(stmt, 1, settings->last_successful_refresh);
         break;
     case SettingsColumn_manual_sort_list:
         json_object* manual_sort_list_json =

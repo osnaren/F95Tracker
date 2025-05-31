@@ -4,6 +4,7 @@
 
 #include "game/game.h"
 #include "path/path.h"
+#include "types/datetime.h"
 #include "types/tab.h"
 
 #include <dcimgui/dcimgui.h>
@@ -51,7 +52,7 @@ typedef struct {
     bool independent_tab_views;
     bool insecure_ssl;
     flt32_t interface_scaling;
-    // Timestamp last_successful_refresh;
+    Timestamp last_successful_refresh;
     GameIdArray_t manual_sort_list;
     bool mark_installed_after_add;
     int32_t max_connections;
