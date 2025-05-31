@@ -33,6 +33,10 @@ Game* game_init(void) {
     m_string_init(game->installed);
     m_string_init(game->description);
     m_string_init(game->changelog);
+
+    m_bitset_init(game->tags);
+    m_bitset_resize(game->tags, 1 + GameTag_COUNT);
+
     m_string_init(game->notes);
     m_string_init(game->image_url);
 
@@ -49,6 +53,9 @@ void game_free(Game* game) {
     m_string_clear(game->installed);
     m_string_clear(game->description);
     m_string_clear(game->changelog);
+
+    m_bitset_clear(game->tags);
+
     m_string_clear(game->notes);
     m_string_clear(game->image_url);
 

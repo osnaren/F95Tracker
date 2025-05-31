@@ -10,6 +10,7 @@
 #include <limits.h>
 // #include <math.h>
 #include <mlib/m-array.h>
+#include <mlib/m-bitset.h>
 #include <mlib/m-bstring.h>
 #include <mlib/m-buffer.h>
 #include <mlib/m-dict.h>

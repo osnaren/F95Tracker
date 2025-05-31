@@ -46,8 +46,14 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     col++;
     m_string_set(game->description, sqlite3_column_text(stmt, col++));
     m_string_set(game->changelog, sqlite3_column_text(stmt, col++));
-    // game->tags = sqlite3_column_int(stmt, col++);
-    col++;
+
+    json_object* tags_json = sqlite3_column_json(stmt, col++);
+    for(size_t i = 0; i < json_object_array_length(tags_json); i++) {
+        json_object* tag = json_object_array_get_idx(tags_json, i);
+        m_bitset_set_at(game->tags, json_object_get_int(tag), true);
+    }
+    json_object_put(tags_json);
+
     // game->unknown_tags = sqlite3_column_int(stmt, col++);
     col++;
     game->unknown_tags_flag = sqlite3_column_int(stmt, col++);
@@ -228,7 +234,13 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         res = sqlite3_bind_mstring(stmt, 1, game->changelog);
         break;
     case GamesColumn_tags:
-        // res = sqlite3_bind_int(stmt, 1, game->tags);
+        json_object* tags_json = json_object_new_array();
+        for(GameTag tag = GameTag_min(); tag <= GameTag_max(); tag++) {
+            if(m_bitset_get(game->tags, tag) == false) continue;
+            json_object_array_add(tags_json, json_object_new_int(tag));
+        }
+        res = sqlite3_bind_json(stmt, 1, tags_json);
+        json_object_put(tags_json);
         break;
     case GamesColumn_unknown_tags:
         // res = sqlite3_bind_int(stmt, 1, game->unknown_tags);

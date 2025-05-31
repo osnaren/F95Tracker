@@ -48,7 +48,7 @@ typedef struct {
     // list[str] executables;
     m_string_t description;
     m_string_t changelog;
-    // tuple[Tag] tags;
+    m_bitset_t tags;
     // list[str] unknown_tags;
     bool unknown_tags_flag;
     // list[Label.get] labels;
