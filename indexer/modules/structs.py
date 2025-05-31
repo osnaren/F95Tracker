@@ -694,18 +694,6 @@ class Game:
 
     def __post_init__(self):
         self._did_init = True
-        if self.custom is None:
-            self.custom = bool(self.status is Status.Custom)
-        if self.id < 0:
-            self.custom = True
-        if self.updated is None:
-            self.updated = bool(self.installed) and self.installed != self.version
-        if self.image_url == "-":
-            self.image_url = "missing"
-        if self.finished == "True" and self.installed != "True" and self.version != "True":
-            self.finished = (self.installed or self.version)
-        elif self.finished == "False" and self.installed != "False" and self.version != "False":
-            self.finished = ""
         from external import imagehelper
         from modules import globals
         self.image = imagehelper.ImageHelper(globals.images_path, glob=f"{self.id}.*")

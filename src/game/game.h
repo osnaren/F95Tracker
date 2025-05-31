@@ -3,6 +3,7 @@
 #include "enums.h"
 
 #include "types/datetime.h"
+#include "types/tab.h"
 
 #include <std.h>
 
@@ -20,10 +21,12 @@ size_t GameId_hash(GameId n);
 
 M_ARRAY_DEF(GameIdArray, GameId)
 
+#define GAME_IMAGE_URL_MISSING "missing"
+
 // FIXME: implement missing fields
 typedef struct {
     GameId id;
-    // bool | None custom;
+    bool custom;
     m_string_t name;
     m_string_t version;
     m_string_t developer;
@@ -40,7 +43,7 @@ typedef struct {
     uint8_t rating;
     m_string_t finished;
     m_string_t installed;
-    // bool | None updated;
+    bool updated;
     bool archived;
     // list[str] executables;
     m_string_t description;
@@ -49,7 +52,7 @@ typedef struct {
     // list[str] unknown_tags;
     bool unknown_tags_flag;
     // list[Label.get] labels;
-    // Tab.get tab;
+    Tab* tab;
     m_string_t notes;
     m_string_t image_url;
     // list[str] previews_urls;

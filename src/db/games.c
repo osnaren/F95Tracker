@@ -1,6 +1,8 @@
 #include "games.h"
 #include "db_i.h"
 
+#include <app.h>
+
 DB_TABLE_DEFINE(_GAMES, games, GamesColumn)
 
 static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
@@ -9,8 +11,13 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
 
     // FIXME: load missing fields
     game->id = sqlite3_column_int(stmt, col++);
-    // game->custom = sqlite3_column_int(stmt, col++);
+
+    bool migrate_custom = sqlite3_column_type(stmt, col) == SQLITE_NULL;
+    if(!migrate_custom) {
+        game->custom = sqlite3_column_int(stmt, col);
+    }
     col++;
+
     m_string_set(game->name, sqlite3_column_text(stmt, col++));
     m_string_set(game->version, sqlite3_column_text(stmt, col++));
     m_string_set(game->developer, sqlite3_column_text(stmt, col++));
@@ -27,8 +34,13 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     game->rating = sqlite3_column_int(stmt, col++);
     m_string_set(game->finished, sqlite3_column_text(stmt, col++));
     m_string_set(game->installed, sqlite3_column_text(stmt, col++));
-    // game->updated = sqlite3_column_int(stmt, col++);
+
+    bool migrate_updated = sqlite3_column_type(stmt, col) == SQLITE_NULL;
+    if(!migrate_updated) {
+        game->updated = sqlite3_column_int(stmt, col);
+    }
     col++;
+
     game->archived = sqlite3_column_int(stmt, col++);
     // game->executables = sqlite3_column_int(stmt, col++);
     col++;
@@ -41,10 +53,27 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     game->unknown_tags_flag = sqlite3_column_int(stmt, col++);
     // game->labels = sqlite3_column_int(stmt, col++);
     col++;
-    // game->tab = sqlite3_column_int(stmt, col++);
+
+    game->tab = NULL;
+    if(sqlite3_column_type(stmt, col) != SQLITE_NULL) {
+        TabId tab_id = sqlite3_column_int(stmt, col);
+        for
+            M_EACH(tab, app.tabs, TabList_t) {
+                if(tab->id == tab_id) {
+                    game->tab = tab;
+                    break;
+                }
+            }
+    }
     col++;
+
     m_string_set(game->notes, sqlite3_column_text(stmt, col++));
+
     m_string_set(game->image_url, sqlite3_column_text(stmt, col++));
+    if(m_string_equal_p(game->image_url, "-")) {
+        m_string_set(game->image_url, GAME_IMAGE_URL_MISSING);
+    }
+
     // game->previews_urls = sqlite3_column_int(stmt, col++);
     col++;
     // game->downloads = sqlite3_column_int(stmt, col++);
@@ -52,6 +81,32 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     game->reviews_total = sqlite3_column_int(stmt, col++);
     // game->reviews = sqlite3_column_int(stmt, col++);
     col++;
+
+    if(migrate_custom) {
+        game->custom = game->status == GameStatus_Custom;
+    }
+    if(game->id < 0) {
+        game->custom = true;
+    }
+
+    if(migrate_updated) {
+        game->updated = !m_string_empty_p(game->installed) &&
+                        !m_string_equal_p(game->installed, game->version);
+    }
+
+    if(m_string_equal_p(game->finished, "1") &&
+       (!m_string_equal_p(game->installed, "1") && !m_string_equal_p(game->version, "1"))) {
+        if(!m_string_empty_p(game->installed)) {
+            m_string_set(game->finished, game->installed);
+        } else {
+            m_string_set(game->finished, game->version);
+        }
+    }
+
+    if(m_string_equal_p(game->finished, "0") &&
+       (!m_string_equal_p(game->installed, "0") && !m_string_equal_p(game->version, "0"))) {
+        m_string_reset(game->finished);
+    }
 }
 
 void db_do_load_games(Db* db, GameDict_t* games) {
@@ -107,7 +162,7 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         res = sqlite3_bind_int(stmt, 1, game->id);
         break;
     case GamesColumn_custom:
-        // res = sqlite3_bind_int(stmt, 1, game->custom);
+        res = sqlite3_bind_int(stmt, 1, game->custom);
         break;
     case GamesColumn_name:
         res = sqlite3_bind_mstring(stmt, 1, game->name);
@@ -158,7 +213,7 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         res = sqlite3_bind_mstring(stmt, 1, game->installed);
         break;
     case GamesColumn_updated:
-        // res = sqlite3_bind_int(stmt, 1, game->updated);
+        res = sqlite3_bind_int(stmt, 1, game->updated);
         break;
     case GamesColumn_archived:
         res = sqlite3_bind_int(stmt, 1, game->archived);
@@ -185,7 +240,11 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         // res = sqlite3_bind_int(stmt, 1, game->labels);
         break;
     case GamesColumn_tab:
-        // res = sqlite3_bind_int(stmt, 1, game->tab);
+        if(game->tab == NULL) {
+            res = sqlite3_bind_null(stmt, 1);
+        } else {
+            res = sqlite3_bind_int(stmt, 1, game->tab->id);
+        }
         break;
     case GamesColumn_notes:
         res = sqlite3_bind_mstring(stmt, 1, game->notes);
