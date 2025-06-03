@@ -42,8 +42,24 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     col++;
 
     game->archived = sqlite3_column_int(stmt, col++);
-    // game->executables = sqlite3_column_int(stmt, col++);
-    col++;
+
+    const char* executables_text = sqlite3_column_text(stmt, col++);
+    if(executables_text[0] == '[') {
+        json_object* executables_json = json_tokener_parse(executables_text);
+        for(size_t i = 0; i < json_object_array_length(executables_json); i++) {
+            json_object* executable = json_object_array_get_idx(executables_json, i);
+            m_string_t executable_str;
+            m_string_init_set(executable_str, json_object_get_string(executable));
+            MstringList_push_front_move(game->executables, &executable_str);
+        }
+        json_object_put(executables_json);
+    } else if(executables_text[0] != '\0') {
+        printf("%s\n", executables_text);
+        m_string_t executable_str;
+        m_string_init_set(executable_str, executables_text);
+        MstringList_push_front_move(game->executables, &executable_str);
+    }
+
     m_string_set(game->description, sqlite3_column_text(stmt, col++));
     m_string_set(game->changelog, sqlite3_column_text(stmt, col++));
 
@@ -54,8 +70,15 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     }
     json_object_put(tags_json);
 
-    // game->unknown_tags = sqlite3_column_int(stmt, col++);
-    col++;
+    json_object* unknown_tags_json = sqlite3_column_json(stmt, col++);
+    for(size_t i = 0; i < json_object_array_length(unknown_tags_json); i++) {
+        json_object* unknown_tag = json_object_array_get_idx(unknown_tags_json, i);
+        m_string_t unknown_tag_str;
+        m_string_init_set(unknown_tag_str, json_object_get_string(unknown_tag));
+        MstringList_push_front_move(game->unknown_tags, &unknown_tag_str);
+    }
+    json_object_put(unknown_tags_json);
+
     game->unknown_tags_flag = sqlite3_column_int(stmt, col++);
     // game->labels = sqlite3_column_int(stmt, col++);
     col++;
@@ -80,8 +103,15 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
         m_string_set(game->image_url, GAME_IMAGE_URL_MISSING);
     }
 
-    // game->previews_urls = sqlite3_column_int(stmt, col++);
-    col++;
+    json_object* previews_urls_json = sqlite3_column_json(stmt, col++);
+    for(size_t i = 0; i < json_object_array_length(previews_urls_json); i++) {
+        json_object* preview_url = json_object_array_get_idx(previews_urls_json, i);
+        m_string_t preview_url_str;
+        m_string_init_set(preview_url_str, json_object_get_string(preview_url));
+        MstringList_push_front_move(game->previews_urls, &preview_url_str);
+    }
+    json_object_put(previews_urls_json);
+
     // game->downloads = sqlite3_column_int(stmt, col++);
     col++;
     game->reviews_total = sqlite3_column_int(stmt, col++);
@@ -225,7 +255,16 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         res = sqlite3_bind_int(stmt, 1, game->archived);
         break;
     case GamesColumn_executables:
-        // res = sqlite3_bind_int(stmt, 1, game->executables);
+        json_object* executables_json =
+            json_object_new_array_ext(MstringList_size(game->executables));
+        for
+            M_EACH(executable, game->executables, MstringList_t) {
+                json_object_array_add(
+                    executables_json,
+                    json_object_new_string(m_string_get_cstr(*executable)));
+            }
+        res = sqlite3_bind_json(stmt, 1, executables_json);
+        json_object_put(executables_json);
         break;
     case GamesColumn_description:
         res = sqlite3_bind_mstring(stmt, 1, game->description);
@@ -243,7 +282,16 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         json_object_put(tags_json);
         break;
     case GamesColumn_unknown_tags:
-        // res = sqlite3_bind_int(stmt, 1, game->unknown_tags);
+        json_object* unknown_tags_json =
+            json_object_new_array_ext(MstringList_size(game->unknown_tags));
+        for
+            M_EACH(unknown_tag, game->unknown_tags, MstringList_t) {
+                json_object_array_add(
+                    unknown_tags_json,
+                    json_object_new_string(m_string_get_cstr(*unknown_tag)));
+            }
+        res = sqlite3_bind_json(stmt, 1, unknown_tags_json);
+        json_object_put(unknown_tags_json);
         break;
     case GamesColumn_unknown_tags_flag:
         res = sqlite3_bind_int(stmt, 1, game->unknown_tags_flag);
@@ -265,7 +313,16 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         res = sqlite3_bind_mstring(stmt, 1, game->image_url);
         break;
     case GamesColumn_previews_urls:
-        // res = sqlite3_bind_int(stmt, 1, game->previews_urls);
+        json_object* previews_urls_json =
+            json_object_new_array_ext(MstringList_size(game->previews_urls));
+        for
+            M_EACH(preview_url, game->previews_urls, MstringList_t) {
+                json_object_array_add(
+                    previews_urls_json,
+                    json_object_new_string(m_string_get_cstr(*preview_url)));
+            }
+        res = sqlite3_bind_json(stmt, 1, previews_urls_json);
+        json_object_put(previews_urls_json);
         break;
     case GamesColumn_downloads:
         // res = sqlite3_bind_int(stmt, 1, game->downloads);

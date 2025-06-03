@@ -104,6 +104,9 @@ typedef long double flt128_t;
 #define STR(x)  #x
 #define XSTR(x) STR(x)
 
+M_LIST_DUAL_PUSH_DEF(MstringList, m_string_t)
+#define M_OPL_MstringList_t() M_LIST_OPLIST(MstringList)
+
 typedef struct {
     m_mutex_t mutex;
     m_cond_t cond;

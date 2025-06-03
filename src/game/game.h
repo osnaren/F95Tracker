@@ -46,20 +46,21 @@ typedef struct {
     m_string_t installed;
     bool updated;
     bool archived;
-    // list[str] executables;
+    MstringList_t executables;
     m_string_t description;
     m_string_t changelog;
     m_bitset_t tags;
-    // list[str] unknown_tags;
+    MstringList_t unknown_tags;
     bool unknown_tags_flag;
     // list[Label.get] labels;
     Tab* tab;
     m_string_t notes;
     m_string_t image_url;
-    // list[str] previews_urls;
+    MstringList_t previews_urls;
     // tuple[tuple[str, list[tuple[str, str]]]] downloads;
     uint32_t reviews_total;
     // list[Review] reviews;
+
     // bool = False selected;
     // "imagehelper.ImageHelper" = None image;
     // list[bool] = None executables_valids;
