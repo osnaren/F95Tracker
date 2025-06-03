@@ -20,6 +20,7 @@ size_t GameId_hash(GameId n);
         HASH(GameId_hash))
 
 M_ARRAY_DEF(GameIdArray, GameId)
+#define M_OPL_GameIdArray_t() M_ARRAY_OPLIST(GameIdArray)
 
 #define GAME_IMAGE_URL_MISSING "missing"
 

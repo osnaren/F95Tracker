@@ -348,12 +348,10 @@ void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column)
     case SettingsColumn_manual_sort_list:
         json_object* manual_sort_list_json =
             json_object_new_array_ext(GameIdArray_size(settings->manual_sort_list));
-        for(size_t i = 0; i < GameIdArray_size(settings->manual_sort_list); i++) {
-            json_object_array_put_idx(
-                manual_sort_list_json,
-                i,
-                json_object_new_int(*GameIdArray_get(settings->manual_sort_list, i)));
-        }
+        for
+            M_EACH(id, settings->manual_sort_list, GameIdArray_t) {
+                json_object_array_add(manual_sort_list_json, json_object_new_int(*id));
+            }
         res = sqlite3_bind_json(stmt, 1, manual_sort_list_json);
         json_object_put(manual_sort_list_json);
         break;
