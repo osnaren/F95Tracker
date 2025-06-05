@@ -28,6 +28,8 @@ void gui_window_draw(Gui* gui) {
 
     ImGui_Text("Version: %s WIP", app.version);
 
+    ImGui_Text("FPS: %.1f", gui->io->Framerate);
+
     ImGui_Spacing();
 
     ImGui_Text("DB test/demo:");
@@ -128,6 +130,11 @@ void gui_window_draw(Gui* gui) {
         M_EACH(pair, app.games, GameDict_t) {
             Game* game = pair->value;
             ImGui_Text("%d %s", game->id, m_string_get_cstr(game->name));
+            for
+                M_EACH(label, game->labels, LabelPtrList_t) {
+                    ImGui_SameLine();
+                    ImGui_TextUnformatted(m_string_get_cstr((*label)->name));
+                }
         }
 
     ImGui_End();

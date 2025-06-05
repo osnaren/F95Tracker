@@ -30,3 +30,6 @@ M_LIST_DUAL_PUSH_DEF(LabelList, Label)
 #define M_OPL_LabelList_t() M_LIST_OPLIST(LabelList)
 
 void label_list_update_positions(LabelList_t* labels);
+
+M_LIST_DUAL_PUSH_DEF(LabelPtrList, Label*, M_PTR_OPLIST)
+#define M_OPL_LabelPtrList_t() M_LIST_OPLIST(LabelPtrList)

@@ -42,6 +42,8 @@ Game* game_init(void) {
 
     MstringList_init(game->unknown_tags);
 
+    LabelPtrList_init(game->labels);
+
     m_string_init(game->notes);
     m_string_init(game->image_url);
 
@@ -67,6 +69,8 @@ void game_free(Game* game) {
     m_bitset_clear(game->tags);
 
     MstringList_clear(game->unknown_tags);
+
+    LabelPtrList_clear(game->labels);
 
     m_string_clear(game->notes);
     m_string_clear(game->image_url);

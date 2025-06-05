@@ -80,8 +80,19 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     json_object_put(unknown_tags_json);
 
     game->unknown_tags_flag = sqlite3_column_int(stmt, col++);
-    // game->labels = sqlite3_column_int(stmt, col++);
-    col++;
+
+    json_object* labels_json = sqlite3_column_json(stmt, col++);
+    for(size_t i = 0; i < json_object_array_length(labels_json); i++) {
+        json_object* label_id = json_object_array_get_idx(labels_json, i);
+        LabelId label_id_int = json_object_get_int(label_id);
+        for
+            M_EACH(label, app.labels, LabelList_t) {
+                if(label->id == label_id_int) {
+                    LabelPtrList_push_front(game->labels, label);
+                }
+            }
+    }
+    json_object_put(labels_json);
 
     game->tab = NULL;
     if(sqlite3_column_type(stmt, col) != SQLITE_NULL) {
@@ -297,7 +308,13 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         res = sqlite3_bind_int(stmt, 1, game->unknown_tags_flag);
         break;
     case GamesColumn_labels:
-        // res = sqlite3_bind_int(stmt, 1, game->labels);
+        json_object* labels_json = json_object_new_array_ext(LabelPtrList_size(game->labels));
+        for
+            M_EACH(label, game->labels, LabelPtrList_t) {
+                json_object_array_add(labels_json, json_object_new_int((*label)->id));
+            }
+        res = sqlite3_bind_json(stmt, 1, labels_json);
+        json_object_put(labels_json);
         break;
     case GamesColumn_tab:
         if(game->tab == NULL) {

@@ -3,6 +3,7 @@
 #include "enums.h"
 
 #include "types/datetime.h"
+#include "types/label.h"
 #include "types/tab.h"
 
 #include <std.h>
@@ -52,7 +53,7 @@ typedef struct {
     m_bitset_t tags;
     MstringList_t unknown_tags;
     bool unknown_tags_flag;
-    // list[Label.get] labels;
+    LabelPtrList_t labels;
     Tab* tab;
     m_string_t notes;
     m_string_t image_url;
