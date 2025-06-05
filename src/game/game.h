@@ -1,6 +1,6 @@
 #pragma once
 
-#include "enums.h"
+#include "types.h"
 
 #include "types/datetime.h"
 #include "types/label.h"
@@ -60,7 +60,7 @@ typedef struct {
     MstringList_t previews_urls;
     // tuple[tuple[str, list[tuple[str, str]]]] downloads;
     uint32_t reviews_total;
-    // list[Review] reviews;
+    GameReviewList_t reviews;
 
     // bool = False selected;
     // "imagehelper.ImageHelper" = None image;

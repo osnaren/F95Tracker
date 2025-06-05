@@ -5,7 +5,6 @@
 
 void Label_init(Label* label) {
     m_string_init(label->name);
-    label->color = (ImColor){{0, 0, 0, 0}};
 }
 
 void Label_init_set(Label* label, const Label* src) {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types/datetime.h"
+
 #include <dcimgui/dcimgui.h>
 #include <smart_enum/smart_enum.h>
 #include <std.h>
@@ -9,6 +11,29 @@
     _($, Media, 2)          \
     _($, Misc, 3)
 SMARTENUM_DECLARE(_GameCategory, GameCategory)
+
+typedef struct {
+    m_string_t user;
+    uint8_t score;
+    m_string_t message;
+    uint32_t likes;
+    Timestamp timestamp;
+} GameReview;
+
+void GameReview_init(GameReview* gamereview);
+void GameReview_init_set(GameReview* gamereview, const GameReview* src);
+void GameReview_set(GameReview* gamereview, const GameReview* src);
+void GameReview_clear(GameReview* gamereview);
+#define M_OPL_GameReview()                    \
+    M_OPEXTEND(                               \
+        M_POD_OPLIST,                         \
+        INIT(API_2(GameReview_init)),         \
+        INIT_SET(API_6(GameReview_init_set)), \
+        SET(API_6(GameReview_set)),           \
+        CLEAR(API_2(GameReview_clear)))
+
+M_LIST_DUAL_PUSH_DEF(GameReviewList, GameReview)
+#define M_OPL_GameReviewList_t() M_LIST_OPLIST(GameReviewList)
 
 #define _GameStatus(_, $) \
     _($, Normal, 1)       \

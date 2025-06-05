@@ -126,8 +126,24 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     // game->downloads = sqlite3_column_int(stmt, col++);
     col++;
     game->reviews_total = sqlite3_column_int(stmt, col++);
-    // game->reviews = sqlite3_column_int(stmt, col++);
-    col++;
+
+    json_object* reviews_json = sqlite3_column_json(stmt, col++);
+    for(size_t i = 0; i < json_object_array_length(reviews_json); i++) {
+        json_object* review = json_object_array_get_idx(reviews_json, i);
+        GameReview review_obj;
+        GameReview_init(&review_obj);
+        m_string_set(
+            review_obj.user,
+            json_object_get_string(json_object_object_get(review, "user")));
+        review_obj.score = json_object_get_int(json_object_object_get(review, "score"));
+        m_string_set(
+            review_obj.message,
+            json_object_get_string(json_object_object_get(review, "message")));
+        review_obj.likes = json_object_get_int(json_object_object_get(review, "likes"));
+        review_obj.timestamp = json_object_get_int64(json_object_object_get(review, "timestamp"));
+        GameReviewList_push_front_move(game->reviews, &review_obj);
+    }
+    json_object_put(reviews_json);
 
     if(migrate_custom) {
         game->custom = game->status == GameStatus_Custom;
@@ -348,7 +364,28 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         res = sqlite3_bind_int(stmt, 1, game->reviews_total);
         break;
     case GamesColumn_reviews:
-        // res = sqlite3_bind_int(stmt, 1, game->reviews);
+        json_object* reviews_json = json_object_new_array_ext(GameReviewList_size(game->reviews));
+        for
+            M_EACH(review, game->reviews, GameReviewList_t) {
+                json_object* review_json = json_object_new_object();
+                json_object_object_add(
+                    review_json,
+                    "user",
+                    json_object_new_string(m_string_get_cstr(review->user)));
+                json_object_object_add(review_json, "score", json_object_new_int(review->score));
+                json_object_object_add(
+                    review_json,
+                    "message",
+                    json_object_new_string(m_string_get_cstr(review->message)));
+                json_object_object_add(review_json, "likes", json_object_new_int(review->likes));
+                json_object_object_add(
+                    review_json,
+                    "timestamp",
+                    json_object_new_int64(review->timestamp));
+                json_object_array_add(reviews_json, review_json);
+            }
+        res = sqlite3_bind_json(stmt, 1, reviews_json);
+        json_object_put(reviews_json);
         break;
     }
     db_assert(db, res, SQLITE_OK, "sqlite3_bind_*()");

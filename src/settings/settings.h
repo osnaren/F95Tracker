@@ -1,6 +1,6 @@
 #pragma once
 
-#include "enums.h"
+#include "types.h"
 
 #include "game/game.h"
 #include "path/path.h"
