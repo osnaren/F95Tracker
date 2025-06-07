@@ -33,9 +33,9 @@ typedef struct {
     union {
         union {
             Settings* settings;
-            GameDict_t* games;
-            TabList_t* tabs;
-            LabelList_t* labels;
+            GameDict* games;
+            TabList* tabs;
+            LabelList* labels;
         } load;
         union {
             struct {
@@ -57,45 +57,45 @@ typedef struct {
         } save;
         union {
             struct {
-                GameDict_t* games;
+                GameDict* games;
                 GameId id;
                 Game** out;
             } game;
             struct {
-                TabList_t* tabs;
+                TabList* tabs;
                 Tab** out;
             } tab;
             struct {
-                LabelList_t* labels;
+                LabelList* labels;
                 Label** out;
             } label;
         } create;
         union {
             struct {
                 Game* ptr;
-                GameDict_t* games;
+                GameDict* games;
             } game;
             struct {
                 Tab* ptr;
-                TabList_t* tabs;
+                TabList* tabs;
             } tab;
             struct {
                 Label* ptr;
-                LabelList_t* labels;
+                LabelList* labels;
             } label;
         } delete;
     };
 } DbMessage;
 
 // TODO: check if 100 queue is really useful
-M_BUFFER_DEF(DbMessageQueue, DbMessage, 100, M_BUFFER_QUEUE, M_POD_OPLIST)
+M_BUFFER_DEF_AS(db_message_queue, DbMessageQueue, DbMessage, 100, M_BUFFER_QUEUE, M_POD_OPLIST)
 
 struct Db {
     Path* path;
     sqlite3* conn;
     const char* name;
     m_thread_t thread;
-    DbMessageQueue_t queue;
+    DbMessageQueue queue;
     bool did_migration_backup;
 };
 
@@ -115,20 +115,20 @@ void db_append_column_names(m_string_t* sql, const DbTable* table);
 void db_do_load_settings(Db* db, Settings* settings);
 void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column);
 
-void db_do_load_games(Db* db, GameDict_t* games);
+void db_do_load_games(Db* db, GameDict* games);
 void db_do_save_game(Db* db, const Game* game, GamesColumn column);
-Game* db_do_create_game(Db* db, GameDict_t* games, GameId id);
-void db_do_delete_game(Db* db, Game* game, GameDict_t* games);
+Game* db_do_create_game(Db* db, GameDict* games, GameId id);
+void db_do_delete_game(Db* db, Game* game, GameDict* games);
 
-void db_do_load_tabs(Db* db, TabList_t* tabs);
+void db_do_load_tabs(Db* db, TabList* tabs);
 void db_do_save_tab(Db* db, const Tab* tab, TabsColumn column);
-Tab* db_do_create_tab(Db* db, TabList_t* tabs);
-void db_do_delete_tab(Db* db, Tab* tab, TabList_t* tabs);
+Tab* db_do_create_tab(Db* db, TabList* tabs);
+void db_do_delete_tab(Db* db, Tab* tab, TabList* tabs);
 
-void db_do_load_labels(Db* db, LabelList_t* labels);
+void db_do_load_labels(Db* db, LabelList* labels);
 void db_do_save_label(Db* db, const Label* label, LabelsColumn column);
-Label* db_do_create_label(Db* db, LabelList_t* labels);
-void db_do_delete_label(Db* db, Label* label, LabelList_t* labels);
+Label* db_do_create_label(Db* db, LabelList* labels);
+void db_do_delete_label(Db* db, Label* label, LabelList* labels);
 
 #define sqlite3_column_count(pStmt)   (size_t)sqlite3_column_count(pStmt)
 #define sqlite3_column_text(pStmt, i) (const char*)sqlite3_column_text(pStmt, i)

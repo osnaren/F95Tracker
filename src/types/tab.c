@@ -29,10 +29,10 @@ void Tab_clear(Tab* tab) {
     m_string_clear(tab->icon);
 }
 
-void tab_list_update_positions(TabList_t* tabs) {
+void tab_list_update_positions(TabList* tabs) {
     int32_t i = -1;
     for
-        M_EACH(tab, *tabs, TabList_t) {
+        M_EACH(tab, *tabs, TabList) {
             if(tab->position != ++i) {
                 tab->position = i;
                 db_save_tab(app.db, tab, TabsColumn_position);

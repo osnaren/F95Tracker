@@ -20,10 +20,10 @@ typedef struct {
     Timestamp timestamp;
 } GameReview;
 
-void GameReview_init(GameReview* gamereview);
-void GameReview_init_set(GameReview* gamereview, const GameReview* src);
-void GameReview_set(GameReview* gamereview, const GameReview* src);
-void GameReview_clear(GameReview* gamereview);
+void GameReview_init(GameReview* review);
+void GameReview_init_set(GameReview* review, const GameReview* src);
+void GameReview_set(GameReview* review, const GameReview* src);
+void GameReview_clear(GameReview* review);
 #define M_OPL_GameReview()                    \
     M_OPEXTEND(                               \
         M_POD_OPLIST,                         \
@@ -32,8 +32,8 @@ void GameReview_clear(GameReview* gamereview);
         SET(API_6(GameReview_set)),           \
         CLEAR(API_2(GameReview_clear)))
 
-M_LIST_DUAL_PUSH_DEF(GameReviewList, GameReview)
-#define M_OPL_GameReviewList_t() M_LIST_OPLIST(GameReviewList)
+M_LIST_DUAL_PUSH_DEF_AS(game_review_list, GameReviewList, GameReviewListIt, GameReview)
+#define M_OPL_GameReviewList() M_LIST_OPLIST(game_review_list)
 
 #define _GameStatus(_, $) \
     _($, Normal, 1)       \

@@ -12,10 +12,10 @@ typedef struct {
     Os os;
     Db* db;
     Gui* gui;
-    TabList_t tabs;
-    LabelList_t labels;
+    TabList tabs;
+    LabelList labels;
     Settings* settings;
-    GameDict_t games;
+    GameDict games;
 } App;
 
 extern App app;

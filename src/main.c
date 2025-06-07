@@ -22,16 +22,16 @@ int32_t main(int32_t argc, char** argv) {
         goto exit_db;
     }
 
-    TabList_init(app.tabs);
+    tab_list_init(app.tabs);
     db_load_tabs(app.db, &app.tabs);
 
-    LabelList_init(app.labels);
+    label_list_init(app.labels);
     db_load_labels(app.db, &app.labels);
 
     app.settings = settings_init();
     db_load_settings(app.db, app.settings);
 
-    GameDict_init(app.games);
+    game_dict_init(app.games);
     db_load_games(app.db, &app.games);
 
     app.gui = gui_init();
@@ -50,16 +50,16 @@ exit_gui:
     db_free(app.db);
 
     for
-        M_EACH(pair, app.games, GameDict_t) {
+        M_EACH(pair, app.games, GameDict) {
             game_free(pair->value);
         }
-    GameDict_clear(app.games);
+    game_dict_clear(app.games);
 
     settings_free(app.settings);
 
-    LabelList_clear(app.labels);
+    label_list_clear(app.labels);
 
-    TabList_clear(app.tabs);
+    tab_list_clear(app.tabs);
 exit_db:
 
     return ret;

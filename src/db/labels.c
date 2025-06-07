@@ -13,7 +13,7 @@ static void db_parse_label(Db* db, sqlite3_stmt* stmt, Label* label) {
     label->position = sqlite3_column_int(stmt, col++);
 }
 
-void db_do_load_labels(Db* db, LabelList_t* labels) {
+void db_do_load_labels(Db* db, LabelList* labels) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
@@ -32,7 +32,7 @@ void db_do_load_labels(Db* db, LabelList_t* labels) {
     assert(sqlite3_column_count(stmt) == labels_table.columns_count);
     while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
         db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
-        Label* label = LabelList_push_front_new(*labels);
+        Label* label = label_list_push_front_new(*labels);
         db_parse_label(db, stmt, label);
     }
 
@@ -86,7 +86,7 @@ void db_do_save_label(Db* db, const Label* label, LabelsColumn column) {
     m_string_clear(sql);
 }
 
-Label* db_do_create_label(Db* db, LabelList_t* labels) {
+Label* db_do_create_label(Db* db, LabelList* labels) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
@@ -101,7 +101,7 @@ Label* db_do_create_label(Db* db, LabelList_t* labels) {
     res = sqlite3_step(stmt);
     db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
 
-    Label* label = LabelList_push_front_new(*labels);
+    Label* label = label_list_push_front_new(*labels);
     db_parse_label(db, stmt, label);
 
     res = sqlite3_finalize(stmt);
@@ -113,13 +113,13 @@ Label* db_do_create_label(Db* db, LabelList_t* labels) {
     return label;
 }
 
-void db_do_delete_label(Db* db, Label* label, LabelList_t* labels) {
+void db_do_delete_label(Db* db, Label* label, LabelList* labels) {
     LabelId id = label->id;
     bool removed = false;
-    LabelList_it_t it;
-    for(LabelList_it(it, *labels); !LabelList_end_p(it); LabelList_next(it)) {
-        if(LabelList_cref(it) == label) {
-            LabelList_remove(*labels, it);
+    LabelListIt it;
+    for(label_list_it(it, *labels); !label_list_end_p(it); label_list_next(it)) {
+        if(label_list_cref(it) == label) {
+            label_list_remove(*labels, it);
             removed = true;
             break;
         }

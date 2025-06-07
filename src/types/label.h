@@ -26,10 +26,10 @@ void Label_clear(Label* label);
         SET(API_6(Label_set)),           \
         CLEAR(API_2(Label_clear)))
 
-M_LIST_DUAL_PUSH_DEF(LabelList, Label)
-#define M_OPL_LabelList_t() M_LIST_OPLIST(LabelList)
+M_LIST_DUAL_PUSH_DEF_AS(label_list, LabelList, LabelListIt, Label)
+#define M_OPL_LabelList() M_LIST_OPLIST(label_list)
 
-void label_list_update_positions(LabelList_t* labels);
+void label_list_update_positions(LabelList* labels);
 
-M_LIST_DUAL_PUSH_DEF(LabelPtrList, Label*, M_PTR_OPLIST)
-#define M_OPL_LabelPtrList_t() M_LIST_OPLIST(LabelPtrList)
+M_LIST_DUAL_PUSH_DEF_AS(label_ptr_list, LabelPtrList, LabelPtrListIt, Label*, M_PTR_OPLIST)
+#define M_OPL_LabelPtrList() M_LIST_OPLIST(label_ptr_list)

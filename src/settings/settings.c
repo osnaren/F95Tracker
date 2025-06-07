@@ -12,7 +12,7 @@ Settings* settings_init(void) {
     for(Os os = Os_min(); os <= Os_max(); os++) {
         settings->downloads_dir[os] = path_init("");
     }
-    GameIdArray_init(settings->manual_sort_list);
+    game_id_array_init(settings->manual_sort_list);
     m_string_init(settings->proxy_host);
     m_string_init(settings->proxy_username);
     m_string_init(settings->proxy_password);
@@ -34,7 +34,7 @@ void settings_free(Settings* settings) {
     for(Os os = Os_min(); os <= Os_max(); os++) {
         path_free(settings->downloads_dir[os]);
     }
-    GameIdArray_clear(settings->manual_sort_list);
+    game_id_array_clear(settings->manual_sort_list);
     m_string_clear(settings->proxy_host);
     m_string_clear(settings->proxy_username);
     m_string_clear(settings->proxy_password);

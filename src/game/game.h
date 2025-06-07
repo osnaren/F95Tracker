@@ -20,8 +20,8 @@ size_t GameId_hash(GameId n);
         OOR_SET(API_4(GameId_oor_set)), \
         HASH(GameId_hash))
 
-M_ARRAY_DEF(GameIdArray, GameId)
-#define M_OPL_GameIdArray_t() M_ARRAY_OPLIST(GameIdArray)
+M_ARRAY_DEF_AS(game_id_array, GameIdArray, GameIdArrayIt, GameId)
+#define M_OPL_GameIdArray() M_ARRAY_OPLIST(game_id_array)
 
 #define GAME_IMAGE_URL_MISSING "missing"
 
@@ -47,20 +47,20 @@ typedef struct {
     m_string_t installed;
     bool updated;
     bool archived;
-    MstringList_t executables;
+    MStringList executables;
     m_string_t description;
     m_string_t changelog;
     m_bitset_t tags;
-    MstringList_t unknown_tags;
+    MStringList unknown_tags;
     bool unknown_tags_flag;
-    LabelPtrList_t labels;
+    LabelPtrList labels;
     Tab* tab;
     m_string_t notes;
     m_string_t image_url;
-    MstringList_t previews_urls;
+    MStringList previews_urls;
     // tuple[tuple[str, list[tuple[str, str]]]] downloads;
     uint32_t reviews_total;
-    GameReviewList_t reviews;
+    GameReviewList reviews;
 
     // bool = False selected;
     // "imagehelper.ImageHelper" = None image;
@@ -72,5 +72,13 @@ typedef struct {
 Game* game_init(void);
 void game_free(Game* game);
 
-M_DICT_OA_DEF2(GameDict, GameId, M_OPL_GameId(), Game*, M_PTR_OPLIST)
-#define M_OPL_GameDict_t() M_DICT_OPLIST(GameDict)
+M_DICT_OA_DEF2_AS(
+    game_dict,
+    GameDict,
+    GameDictIt,
+    GameDictItref,
+    GameId,
+    M_OPL_GameId(),
+    Game*,
+    M_PTR_OPLIST)
+#define M_OPL_GameDict() M_DICT_OPLIST(game_dict)

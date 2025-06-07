@@ -25,10 +25,10 @@ void Label_clear(Label* label) {
     m_string_clear(label->name);
 }
 
-void label_list_update_positions(LabelList_t* labels) {
+void label_list_update_positions(LabelList* labels) {
     int32_t i = -1;
     for
-        M_EACH(label, *labels, LabelList_t) {
+        M_EACH(label, *labels, LabelList) {
             if(label->position != ++i) {
                 label->position = i;
                 db_save_label(app.db, label, LabelsColumn_position);

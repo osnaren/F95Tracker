@@ -21,7 +21,7 @@ static void db_parse_tab(Db* db, sqlite3_stmt* stmt, Tab* tab) {
     tab->position = sqlite3_column_int(stmt, col++);
 }
 
-void db_do_load_tabs(Db* db, TabList_t* tabs) {
+void db_do_load_tabs(Db* db, TabList* tabs) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
@@ -40,7 +40,7 @@ void db_do_load_tabs(Db* db, TabList_t* tabs) {
     assert(sqlite3_column_count(stmt) == tabs_table.columns_count);
     while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
         db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
-        Tab* tab = TabList_push_front_new(*tabs);
+        Tab* tab = tab_list_push_front_new(*tabs);
         db_parse_tab(db, stmt, tab);
     }
 
@@ -101,7 +101,7 @@ void db_do_save_tab(Db* db, const Tab* tab, TabsColumn column) {
     m_string_clear(sql);
 }
 
-Tab* db_do_create_tab(Db* db, TabList_t* tabs) {
+Tab* db_do_create_tab(Db* db, TabList* tabs) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
@@ -116,7 +116,7 @@ Tab* db_do_create_tab(Db* db, TabList_t* tabs) {
     res = sqlite3_step(stmt);
     db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
 
-    Tab* tab = TabList_push_front_new(*tabs);
+    Tab* tab = tab_list_push_front_new(*tabs);
     db_parse_tab(db, stmt, tab);
 
     res = sqlite3_finalize(stmt);
@@ -128,13 +128,13 @@ Tab* db_do_create_tab(Db* db, TabList_t* tabs) {
     return tab;
 }
 
-void db_do_delete_tab(Db* db, Tab* tab, TabList_t* tabs) {
+void db_do_delete_tab(Db* db, Tab* tab, TabList* tabs) {
     TabId id = tab->id;
     bool removed = false;
-    TabList_it_t it;
-    for(TabList_it(it, *tabs); !TabList_end_p(it); TabList_next(it)) {
-        if(TabList_cref(it) == tab) {
-            TabList_remove(*tabs, it);
+    TabListIt it;
+    for(tab_list_it(it, *tabs); !tab_list_end_p(it); tab_list_next(it)) {
+        if(tab_list_cref(it) == tab) {
+            tab_list_remove(*tabs, it);
             removed = true;
             break;
         }

@@ -38,14 +38,14 @@ Db* db_init(void) {
     db_assert(db, res, SQLITE_OK, "sqlite3_wal_autocheckpoint()");
 
     db->did_migration_backup = false;
-    DbMessageQueue_init(db->queue, 100);
+    db_message_queue_init(db->queue, 100);
     m_thread_create(db->thread, db_thread, db);
 
     return db;
 }
 
 static void db_send_message_async(Db* db, const DbMessage message) {
-    DbMessageQueue_push(db->queue, message);
+    db_message_queue_push(db->queue, message);
 }
 
 static void db_send_message_blocking(Db* db, DbMessage message) {
@@ -377,7 +377,7 @@ void db_save_setting(Db* db, const Settings* settings, SettingsColumn column) {
     db_send_message_async(db, message);
 }
 
-void db_load_games(Db* db, GameDict_t* games) {
+void db_load_games(Db* db, GameDict* games) {
     const DbMessage message = {
         .type = DbMessageType_LoadGames,
         .load.games = games,
@@ -397,7 +397,7 @@ void db_save_game(Db* db, const Game* game, GamesColumn column) {
     db_send_message_async(db, message);
 }
 
-Game* db_create_game(Db* db, GameDict_t* games, GameId id) {
+Game* db_create_game(Db* db, GameDict* games, GameId id) {
     Game* game;
     const DbMessage message = {
         .type = DbMessageType_CreateGame,
@@ -412,7 +412,7 @@ Game* db_create_game(Db* db, GameDict_t* games, GameId id) {
     return game;
 }
 
-void db_delete_game(Db* db, Game* game, GameDict_t* games) {
+void db_delete_game(Db* db, Game* game, GameDict* games) {
     const DbMessage message = {
         .type = DbMessageType_DeleteGame,
         .delete.game =
@@ -424,7 +424,7 @@ void db_delete_game(Db* db, Game* game, GameDict_t* games) {
     db_send_message_blocking(db, message);
 }
 
-void db_load_tabs(Db* db, TabList_t* tabs) {
+void db_load_tabs(Db* db, TabList* tabs) {
     const DbMessage message = {
         .type = DbMessageType_LoadTabs,
         .load.tabs = tabs,
@@ -444,7 +444,7 @@ void db_save_tab(Db* db, const Tab* tab, TabsColumn column) {
     db_send_message_async(db, message);
 }
 
-Tab* db_create_tab(Db* db, TabList_t* tabs) {
+Tab* db_create_tab(Db* db, TabList* tabs) {
     Tab* tab;
     const DbMessage message = {
         .type = DbMessageType_CreateTab,
@@ -458,7 +458,7 @@ Tab* db_create_tab(Db* db, TabList_t* tabs) {
     return tab;
 }
 
-void db_delete_tab(Db* db, Tab* tab, TabList_t* tabs) {
+void db_delete_tab(Db* db, Tab* tab, TabList* tabs) {
     const DbMessage message = {
         .type = DbMessageType_DeleteTab,
         .delete.tab =
@@ -470,7 +470,7 @@ void db_delete_tab(Db* db, Tab* tab, TabList_t* tabs) {
     db_send_message_blocking(db, message);
 }
 
-void db_load_labels(Db* db, LabelList_t* labels) {
+void db_load_labels(Db* db, LabelList* labels) {
     const DbMessage message = {
         .type = DbMessageType_LoadLabels,
         .load.labels = labels,
@@ -490,7 +490,7 @@ void db_save_label(Db* db, const Label* label, LabelsColumn column) {
     db_send_message_async(db, message);
 }
 
-Label* db_create_label(Db* db, LabelList_t* labels) {
+Label* db_create_label(Db* db, LabelList* labels) {
     Label* label;
     const DbMessage message = {
         .type = DbMessageType_CreateLabel,
@@ -504,7 +504,7 @@ Label* db_create_label(Db* db, LabelList_t* labels) {
     return label;
 }
 
-void db_delete_label(Db* db, Label* label, LabelList_t* labels) {
+void db_delete_label(Db* db, Label* label, LabelList* labels) {
     const DbMessage message = {
         .type = DbMessageType_DeleteLabel,
         .delete.label =
@@ -521,7 +521,7 @@ static void db_thread(void* ctx) {
     bool quit = false;
 
     DbMessage message;
-    while(DbMessageQueue_pop_blocking(&message, db->queue, !quit)) {
+    while(db_message_queue_pop_blocking(&message, db->queue, !quit)) {
         switch(message.type) {
         case DbMessageType_Quit:
             quit = true;
@@ -590,7 +590,7 @@ void db_free(Db* db) {
     };
     db_send_message_async(db, message);
     m_thread_join(db->thread);
-    DbMessageQueue_clear(db->queue);
+    db_message_queue_clear(db->queue);
 
     free((char*)db->name);
     sqlite3_close(db->conn);

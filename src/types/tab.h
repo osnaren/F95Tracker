@@ -28,7 +28,7 @@ void Tab_clear(Tab* tab);
         SET(API_6(Tab_set)),           \
         CLEAR(API_2(Tab_clear)))
 
-M_LIST_DUAL_PUSH_DEF(TabList, Tab)
-#define M_OPL_TabList_t() M_LIST_OPLIST(TabList)
+M_LIST_DUAL_PUSH_DEF_AS(tab_list, TabList, TabListIt, Tab)
+#define M_OPL_TabList() M_LIST_OPLIST(tab_list)
 
-void tab_list_update_positions(TabList_t* tabs);
+void tab_list_update_positions(TabList* tabs);

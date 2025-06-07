@@ -48,7 +48,7 @@ static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
     if(sqlite3_column_type(stmt, col) != SQLITE_NULL) {
         TabId tab_id = sqlite3_column_int(stmt, col);
         for
-            M_EACH(tab, app.tabs, TabList_t) {
+            M_EACH(tab, app.tabs, TabList) {
                 if(tab->id == tab_id) {
                     settings->display_tab = tab;
                     break;
@@ -91,10 +91,12 @@ static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
     settings->last_successful_refresh = sqlite3_column_int64(stmt, col++);
 
     json_object* manual_sort_list_json = sqlite3_column_json(stmt, col++);
-    GameIdArray_resize(settings->manual_sort_list, json_object_array_length(manual_sort_list_json));
+    game_id_array_resize(
+        settings->manual_sort_list,
+        json_object_array_length(manual_sort_list_json));
     for(size_t i = 0; i < json_object_array_length(manual_sort_list_json); i++) {
         json_object* manual_sort_id = json_object_array_get_idx(manual_sort_list_json, i);
-        GameIdArray_set_at(settings->manual_sort_list, i, json_object_get_int(manual_sort_id));
+        game_id_array_set_at(settings->manual_sort_list, i, json_object_get_int(manual_sort_id));
     }
     json_object_put(manual_sort_list_json);
 
@@ -347,9 +349,9 @@ void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column)
         break;
     case SettingsColumn_manual_sort_list:
         json_object* manual_sort_list_json =
-            json_object_new_array_ext(GameIdArray_size(settings->manual_sort_list));
+            json_object_new_array_ext(game_id_array_size(settings->manual_sort_list));
         for
-            M_EACH(id, settings->manual_sort_list, GameIdArray_t) {
+            M_EACH(id, settings->manual_sort_list, GameIdArray) {
                 json_object_array_add(manual_sort_list_json, json_object_new_int(*id));
             }
         res = sqlite3_bind_json(stmt, 1, manual_sort_list_json);

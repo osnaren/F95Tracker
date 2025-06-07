@@ -32,7 +32,7 @@ Game* game_init(void) {
     m_string_init(game->finished);
     m_string_init(game->installed);
 
-    MstringList_init(game->executables);
+    m_string_list_init(game->executables);
 
     m_string_init(game->description);
     m_string_init(game->changelog);
@@ -40,16 +40,16 @@ Game* game_init(void) {
     m_bitset_init(game->tags);
     m_bitset_resize(game->tags, 1 + GameTag_COUNT);
 
-    MstringList_init(game->unknown_tags);
+    m_string_list_init(game->unknown_tags);
 
-    LabelPtrList_init(game->labels);
+    label_ptr_list_init(game->labels);
 
     m_string_init(game->notes);
     m_string_init(game->image_url);
 
-    MstringList_init(game->previews_urls);
+    m_string_list_init(game->previews_urls);
 
-    GameReviewList_init(game->reviews);
+    game_review_list_init(game->reviews);
 
     return game;
 }
@@ -63,23 +63,23 @@ void game_free(Game* game) {
     m_string_clear(game->finished);
     m_string_clear(game->installed);
 
-    MstringList_clear(game->executables);
+    m_string_list_clear(game->executables);
 
     m_string_clear(game->description);
     m_string_clear(game->changelog);
 
     m_bitset_clear(game->tags);
 
-    MstringList_clear(game->unknown_tags);
+    m_string_list_clear(game->unknown_tags);
 
-    LabelPtrList_clear(game->labels);
+    label_ptr_list_clear(game->labels);
 
     m_string_clear(game->notes);
     m_string_clear(game->image_url);
 
-    MstringList_clear(game->previews_urls);
+    m_string_list_clear(game->previews_urls);
 
-    GameReviewList_clear(game->reviews);
+    game_review_list_clear(game->reviews);
 
     free(game);
 }
