@@ -21,5 +21,6 @@ typedef tab_ptr Tab_ptr;
 
 M_LIST_DUAL_PUSH_DEF_AS(tab_list, TabList, TabListIt, Tab)
 #define M_OPL_TabList() M_LIST_OPLIST(tab_list)
+typedef tab_list_ptr TabList_ptr;
 
-void tab_list_update_positions(TabList* tabs);
+void tab_list_update_positions(TabList_ptr tabs);

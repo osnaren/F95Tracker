@@ -377,7 +377,7 @@ void db_save_setting(Db* db, Settings* settings, SettingsColumn column) {
     db_send_message_async(db, message);
 }
 
-void db_load_games(Db* db, GameDict* games) {
+void db_load_games(Db* db, GameDict_ptr games) {
     const DbMessage message = {
         .type = DbMessageType_LoadGames,
         .load.games = games,
@@ -397,7 +397,7 @@ void db_save_game(Db* db, Game* game, GamesColumn column) {
     db_send_message_async(db, message);
 }
 
-Game* db_create_game(Db* db, GameDict* games, GameId id) {
+Game* db_create_game(Db* db, GameDict_ptr games, GameId id) {
     Game* game;
     const DbMessage message = {
         .type = DbMessageType_CreateGame,
@@ -412,7 +412,7 @@ Game* db_create_game(Db* db, GameDict* games, GameId id) {
     return game;
 }
 
-void db_delete_game(Db* db, Game* game, GameDict* games) {
+void db_delete_game(Db* db, Game* game, GameDict_ptr games) {
     const DbMessage message = {
         .type = DbMessageType_DeleteGame,
         .delete.game =
@@ -424,7 +424,7 @@ void db_delete_game(Db* db, Game* game, GameDict* games) {
     db_send_message_blocking(db, message);
 }
 
-void db_load_tabs(Db* db, TabList* tabs) {
+void db_load_tabs(Db* db, TabList_ptr tabs) {
     const DbMessage message = {
         .type = DbMessageType_LoadTabs,
         .load.tabs = tabs,
@@ -444,7 +444,7 @@ void db_save_tab(Db* db, Tab_ptr tab, TabsColumn column) {
     db_send_message_async(db, message);
 }
 
-Tab_ptr db_create_tab(Db* db, TabList* tabs) {
+Tab_ptr db_create_tab(Db* db, TabList_ptr tabs) {
     Tab_ptr tab;
     const DbMessage message = {
         .type = DbMessageType_CreateTab,
@@ -458,7 +458,7 @@ Tab_ptr db_create_tab(Db* db, TabList* tabs) {
     return tab;
 }
 
-void db_delete_tab(Db* db, Tab_ptr tab, TabList* tabs) {
+void db_delete_tab(Db* db, Tab_ptr tab, TabList_ptr tabs) {
     const DbMessage message = {
         .type = DbMessageType_DeleteTab,
         .delete.tab =
@@ -470,7 +470,7 @@ void db_delete_tab(Db* db, Tab_ptr tab, TabList* tabs) {
     db_send_message_blocking(db, message);
 }
 
-void db_load_labels(Db* db, LabelList* labels) {
+void db_load_labels(Db* db, LabelList_ptr labels) {
     const DbMessage message = {
         .type = DbMessageType_LoadLabels,
         .load.labels = labels,
@@ -490,7 +490,7 @@ void db_save_label(Db* db, Label_ptr label, LabelsColumn column) {
     db_send_message_async(db, message);
 }
 
-Label_ptr db_create_label(Db* db, LabelList* labels) {
+Label_ptr db_create_label(Db* db, LabelList_ptr labels) {
     Label_ptr label;
     const DbMessage message = {
         .type = DbMessageType_CreateLabel,
@@ -504,7 +504,7 @@ Label_ptr db_create_label(Db* db, LabelList* labels) {
     return label;
 }
 
-void db_delete_label(Db* db, Label_ptr label, LabelList* labels) {
+void db_delete_label(Db* db, Label_ptr label, LabelList_ptr labels) {
     const DbMessage message = {
         .type = DbMessageType_DeleteLabel,
         .delete.label =

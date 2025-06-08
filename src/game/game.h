@@ -82,4 +82,5 @@ M_DICT_OA_DEF2_AS(
     Game*,
     M_PTR_OPLIST)
 #define M_OPL_GameDict() M_DICT_OPLIST(game_dict)
+typedef game_dict_ptr GameDict_ptr;
 typedef game_dict_pair_ct GameDict_pair;

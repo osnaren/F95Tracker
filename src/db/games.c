@@ -170,7 +170,7 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     }
 }
 
-void db_do_load_games(Db* db, GameDict* games) {
+void db_do_load_games(Db* db, GameDict_ptr games) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
@@ -191,7 +191,7 @@ void db_do_load_games(Db* db, GameDict* games) {
         db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
         Game* game = game_init();
         db_parse_game(db, stmt, game);
-        game_dict_set_at(*games, game->id, game);
+        game_dict_set_at(games, game->id, game);
     }
 
     res = sqlite3_finalize(stmt);
@@ -393,11 +393,11 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
     m_string_clear(sql);
 }
 
-Game* db_do_create_game(Db* db, GameDict* games, GameId id) {
+Game* db_do_create_game(Db* db, GameDict_ptr games, GameId id) {
     bool custom = id < 0;
     if(custom) {
         id = -1;
-        for each(GameDict_pair, pair, GameDict, *games) {
+        for each(GameDict_pair, pair, GameDict, games) {
             if(pair.key <= id) {
                 id = pair.key - 1;
             }
@@ -445,7 +445,7 @@ Game* db_do_create_game(Db* db, GameDict* games, GameId id) {
 
     Game* game = game_init();
     db_parse_game(db, stmt, game);
-    game_dict_set_at(*games, game->id, game);
+    game_dict_set_at(games, game->id, game);
 
     res = sqlite3_finalize(stmt);
     db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
@@ -454,9 +454,9 @@ Game* db_do_create_game(Db* db, GameDict* games, GameId id) {
     return game;
 }
 
-void db_do_delete_game(Db* db, Game* game, GameDict* games) {
+void db_do_delete_game(Db* db, Game* game, GameDict_ptr games) {
     GameId id = game->id;
-    bool removed = game_dict_erase(*games, id);
+    bool removed = game_dict_erase(games, id);
     game_free(game);
     assert(removed);
     UNUSED(removed);

@@ -3,9 +3,9 @@
 
 #include <app.h>
 
-void tab_list_update_positions(TabList* tabs) {
+void tab_list_update_positions(TabList_ptr tabs) {
     int32_t i = -1;
-    for each(Tab_ptr, tab, TabList, *tabs) {
+    for each(Tab_ptr, tab, TabList, tabs) {
         if(tab->position != ++i) {
             tab->position = i;
             db_save_tab(app.db, tab, TabsColumn_position);

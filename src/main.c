@@ -23,16 +23,16 @@ int32_t main(int32_t argc, char** argv) {
     }
 
     tab_list_init(app.tabs);
-    db_load_tabs(app.db, &app.tabs);
+    db_load_tabs(app.db, app.tabs);
 
     label_list_init(app.labels);
-    db_load_labels(app.db, &app.labels);
+    db_load_labels(app.db, app.labels);
 
     app.settings = settings_init();
     db_load_settings(app.db, app.settings);
 
     game_dict_init(app.games);
-    db_load_games(app.db, &app.games);
+    db_load_games(app.db, app.games);
 
     app.gui = gui_init();
     if(app.gui == NULL) {

@@ -21,19 +21,19 @@ void db_backup(Db* db);
 void db_load_settings(Db* db, Settings* settings);
 void db_save_setting(Db* db, Settings* settings, SettingsColumn column);
 
-void db_load_games(Db* db, GameDict* games);
+void db_load_games(Db* db, GameDict_ptr games);
 void db_save_game(Db* db, Game* game, GamesColumn column);
-Game* db_create_game(Db* db, GameDict* games, GameId id);
-void db_delete_game(Db* db, Game* game, GameDict* games);
+Game* db_create_game(Db* db, GameDict_ptr games, GameId id);
+void db_delete_game(Db* db, Game* game, GameDict_ptr games);
 
-void db_load_tabs(Db* db, TabList* tabs);
+void db_load_tabs(Db* db, TabList_ptr tabs);
 void db_save_tab(Db* db, Tab_ptr tab, TabsColumn column);
-Tab_ptr db_create_tab(Db* db, TabList* tabs);
-void db_delete_tab(Db* db, Tab_ptr tab, TabList* tabs);
+Tab_ptr db_create_tab(Db* db, TabList_ptr tabs);
+void db_delete_tab(Db* db, Tab_ptr tab, TabList_ptr tabs);
 
-void db_load_labels(Db* db, LabelList* labels);
+void db_load_labels(Db* db, LabelList_ptr labels);
 void db_save_label(Db* db, Label_ptr label, LabelsColumn column);
-Label_ptr db_create_label(Db* db, LabelList* labels);
-void db_delete_label(Db* db, Label_ptr label, LabelList* labels);
+Label_ptr db_create_label(Db* db, LabelList_ptr labels);
+void db_delete_label(Db* db, Label_ptr label, LabelList_ptr labels);
 
 void db_free(Db* db);

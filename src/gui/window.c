@@ -86,13 +86,13 @@ void gui_window_draw(Gui* gui) {
     ImGui_AlignTextToFramePadding();
     ImGui_Text("Tabs:");
     if(ImGui_Button("Test add new tab")) {
-        Tab_ptr tab = db_create_tab(app.db, &app.tabs);
+        Tab_ptr tab = db_create_tab(app.db, app.tabs);
         UNUSED(tab);
     }
     for each(Tab_ptr, tab, TabList, app.tabs) {
         ImGui_PushIDInt(tab->id);
         if(ImGui_Button(mdi_trash_can_outline)) {
-            db_delete_tab(app.db, tab, &app.tabs);
+            db_delete_tab(app.db, tab, app.tabs);
             ImGui_PopID();
             continue;
         }
@@ -108,13 +108,13 @@ void gui_window_draw(Gui* gui) {
     ImGui_AlignTextToFramePadding();
     ImGui_Text("Labels:");
     if(ImGui_Button("Test add new label")) {
-        Label_ptr label = db_create_label(app.db, &app.labels);
+        Label_ptr label = db_create_label(app.db, app.labels);
         UNUSED(label);
     }
     for each(Label_ptr, label, LabelList, app.labels) {
         ImGui_PushIDInt(label->id);
         if(ImGui_Button(mdi_trash_can_outline)) {
-            db_delete_label(app.db, label, &app.labels);
+            db_delete_label(app.db, label, app.labels);
             ImGui_PopID();
             continue;
         }

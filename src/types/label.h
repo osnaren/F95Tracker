@@ -19,8 +19,9 @@ typedef label_ptr Label_ptr;
 
 M_LIST_DUAL_PUSH_DEF_AS(label_list, LabelList, LabelListIt, Label)
 #define M_OPL_LabelList() M_LIST_OPLIST(label_list)
+typedef label_list_ptr LabelList_ptr;
 
-void label_list_update_positions(LabelList* labels);
+void label_list_update_positions(LabelList_ptr labels);
 
 M_LIST_DUAL_PUSH_DEF_AS(label_ptr_list, LabelPtrList, LabelPtrListIt, Label_ptr, M_PTR_OPLIST)
 #define M_OPL_LabelPtrList() M_LIST_OPLIST(label_ptr_list)
