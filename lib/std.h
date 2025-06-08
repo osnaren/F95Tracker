@@ -105,7 +105,40 @@ typedef long double flt128_t;
 #define STR(x)  #x
 #define XSTR(x) STR(x)
 
-#define each(item, container, container_type) M_EACH(item, container, container_type)
+// Based on M_EACH() but also dereferences item pointer for convenience;
+// container and container_t are swapped to resemble variable declaration.
+#define each(item_t, item, container_t, container) \
+    eachi_oplist(item_t, item, container, M_GLOBAL_OPLIST(container_t))
+
+// clang-format off
+/* Internal for each */
+#define eachi_oplist(item_t, item, container, oplist)                         \
+  M_IF_METHOD(IT_REF, oplist)(eachi, eachi_const)                             \
+  (item_t, item, container, oplist, M_C(local_iterator_, __LINE__),           \
+   M_C(local_cont_, __LINE__), M_C(local_ptr_, __LINE__))
+
+/* Internal for each with M_GET_IT_REF operator */
+#define eachi(item_t,item,container,oplist, iterator, cont, ptr)              \
+  (bool cont = true; cont; cont = false)                                      \
+  for(M_GET_SUBTYPE oplist *ptr; cont ; cont = false)                         \
+    for(item_t item; cont ; cont = false)                                     \
+      for(M_GET_IT_TYPE oplist iterator; cont ; cont = false)                 \
+        for(M_GET_IT_FIRST oplist (iterator, container) ;                     \
+            !M_GET_IT_END_P oplist (iterator)                                 \
+              && (ptr = M_GET_IT_REF oplist (iterator), item = *ptr, true) ;  \
+            M_GET_IT_NEXT oplist (iterator))
+
+/* Internal for each with M_GET_IT_CREF operator */
+#define eachi_const(item_t,item,container,oplist, iterator, cont, ptr)        \
+  (bool cont = true; cont; cont = false)                                      \
+  for(const M_GET_SUBTYPE oplist *ptr; cont ; cont = false)                   \
+    for(item_t item; cont ; cont = false)                                     \
+      for(M_GET_IT_TYPE oplist iterator; cont ; cont = false)                 \
+        for(M_GET_IT_FIRST oplist (iterator, container) ;                     \
+            !M_GET_IT_END_P oplist (iterator)                                 \
+              && (ptr = M_GET_IT_CREF oplist (iterator), item = *ptr, true) ; \
+            M_GET_IT_NEXT oplist (iterator))
+// clang-format on
 
 M_LIST_DUAL_PUSH_DEF_AS(m_string_list, MStringList, MStringListIt, m_string_t)
 #define M_OPL_MStringList() M_LIST_OPLIST(m_string_list)

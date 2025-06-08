@@ -85,8 +85,7 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     for(size_t i = 0; i < json_object_array_length(labels_json); i++) {
         json_object* label_id = json_object_array_get_idx(labels_json, i);
         LabelId label_id_int = json_object_get_int(label_id);
-        for each(_label, app.labels, LabelList) {
-            Label_ptr label = *_label;
+        for each(Label_ptr, label, LabelList, app.labels) {
             if(label->id == label_id_int) {
                 label_ptr_list_push_front(game->labels, label);
             }
@@ -97,8 +96,7 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     game->tab = NULL;
     if(sqlite3_column_type(stmt, col) != SQLITE_NULL) {
         TabId tab_id = sqlite3_column_int(stmt, col);
-        for each(_tab, app.tabs, TabList) {
-            Tab_ptr tab = *_tab;
+        for each(Tab_ptr, tab, TabList, app.tabs) {
             if(tab->id == tab_id) {
                 game->tab = tab;
                 break;
@@ -284,8 +282,7 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
     case GamesColumn_executables:
         json_object* executables_json =
             json_object_new_array_ext(m_string_list_size(game->executables));
-        for each(_executable, game->executables, MStringList) {
-            m_string_ptr executable = *_executable;
+        for each(m_string_ptr, executable, MStringList, game->executables) {
             json_object_array_add(
                 executables_json,
                 json_object_new_string(m_string_get_cstr(executable)));
@@ -311,8 +308,7 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
     case GamesColumn_unknown_tags:
         json_object* unknown_tags_json =
             json_object_new_array_ext(m_string_list_size(game->unknown_tags));
-        for each(_unknown_tag, game->unknown_tags, MStringList) {
-            m_string_ptr unknown_tag = *_unknown_tag;
+        for each(m_string_ptr, unknown_tag, MStringList, game->unknown_tags) {
             json_object_array_add(
                 unknown_tags_json,
                 json_object_new_string(m_string_get_cstr(unknown_tag)));
@@ -325,8 +321,7 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
         break;
     case GamesColumn_labels:
         json_object* labels_json = json_object_new_array_ext(label_ptr_list_size(game->labels));
-        for each(_label, game->labels, LabelPtrList) {
-            Label_ptr label = *_label;
+        for each(Label_ptr, label, LabelPtrList, game->labels) {
             json_object_array_add(labels_json, json_object_new_int(label->id));
         }
         res = sqlite3_bind_json(stmt, 1, labels_json);
@@ -348,8 +343,7 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
     case GamesColumn_previews_urls:
         json_object* previews_urls_json =
             json_object_new_array_ext(m_string_list_size(game->previews_urls));
-        for each(_preview_url, game->previews_urls, MStringList) {
-            m_string_ptr preview_url = *_preview_url;
+        for each(m_string_ptr, preview_url, MStringList, game->previews_urls) {
             json_object_array_add(
                 previews_urls_json,
                 json_object_new_string(m_string_get_cstr(preview_url)));
@@ -366,8 +360,7 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
     case GamesColumn_reviews:
         json_object* reviews_json =
             json_object_new_array_ext(game_review_list_size(game->reviews));
-        for each(_review, game->reviews, GameReviewList) {
-            GameReview_ptr review = *_review;
+        for each(GameReview_ptr, review, GameReviewList, game->reviews) {
             json_object* review_json = json_object_new_object();
             json_object_object_add(
                 review_json,
@@ -404,9 +397,9 @@ Game* db_do_create_game(Db* db, GameDict* games, GameId id) {
     bool custom = id < 0;
     if(custom) {
         id = -1;
-        for each(pair, *games, GameDict) {
-            if(pair->key <= id) {
-                id = pair->key - 1;
+        for each(GameDict_pair, pair, GameDict, *games) {
+            if(pair.key <= id) {
+                id = pair.key - 1;
             }
         }
         assert(id < 0);

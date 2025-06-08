@@ -47,8 +47,7 @@ static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
     settings->display_tab = NULL;
     if(sqlite3_column_type(stmt, col) != SQLITE_NULL) {
         TabId tab_id = sqlite3_column_int(stmt, col);
-        for each(_tab, app.tabs, TabList) {
-            Tab_ptr tab = *_tab;
+        for each(Tab_ptr, tab, TabList, app.tabs) {
             if(tab->id == tab_id) {
                 settings->display_tab = tab;
                 break;
@@ -350,8 +349,8 @@ void db_do_save_setting(Db* db, Settings* settings, SettingsColumn column) {
     case SettingsColumn_manual_sort_list:
         json_object* manual_sort_list_json =
             json_object_new_array_ext(game_id_array_size(settings->manual_sort_list));
-        for each(id, settings->manual_sort_list, GameIdArray) {
-            json_object_array_add(manual_sort_list_json, json_object_new_int(*id));
+        for each(GameId, id, GameIdArray, settings->manual_sort_list) {
+            json_object_array_add(manual_sort_list_json, json_object_new_int(id));
         }
         res = sqlite3_bind_json(stmt, 1, manual_sort_list_json);
         json_object_put(manual_sort_list_json);

@@ -89,8 +89,7 @@ void gui_window_draw(Gui* gui) {
         Tab_ptr tab = db_create_tab(app.db, &app.tabs);
         UNUSED(tab);
     }
-    for each(_tab, app.tabs, TabList) {
-        Tab_ptr tab = *_tab;
+    for each(Tab_ptr, tab, TabList, app.tabs) {
         ImGui_PushIDInt(tab->id);
         if(ImGui_Button(mdi_trash_can_outline)) {
             db_delete_tab(app.db, tab, &app.tabs);
@@ -112,8 +111,7 @@ void gui_window_draw(Gui* gui) {
         Label_ptr label = db_create_label(app.db, &app.labels);
         UNUSED(label);
     }
-    for each(_label, app.labels, LabelList) {
-        Label_ptr label = *_label;
+    for each(Label_ptr, label, LabelList, app.labels) {
         ImGui_PushIDInt(label->id);
         if(ImGui_Button(mdi_trash_can_outline)) {
             db_delete_label(app.db, label, &app.labels);
@@ -126,11 +124,10 @@ void gui_window_draw(Gui* gui) {
     }
     ImGui_EndGroup();
 
-    for each(pair, app.games, GameDict) {
-        Game* game = pair->value;
+    for each(GameDict_pair, pair, GameDict, app.games) {
+        Game* game = pair.value;
         ImGui_Text("%d %s", game->id, m_string_get_cstr(game->name));
-        for each(_label, game->labels, LabelPtrList) {
-            Label_ptr label = *_label;
+        for each(Label_ptr, label, LabelPtrList, game->labels) {
             ImGui_SameLine();
             ImGui_TextUnformatted(m_string_get_cstr(label->name));
         }
