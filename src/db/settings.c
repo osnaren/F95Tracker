@@ -1,7 +1,7 @@
 #include "settings.h"
 #include "db_i.h"
 
-#include <app.h>
+#include <globals.h>
 
 DB_TABLE_DEFINE(_SETTINGS, settings, SettingsColumn)
 
@@ -38,7 +38,7 @@ static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
         }
         json_object_put(default_exe_dir_json);
     } else {
-        path_set(settings->default_exe_dir[app.os], default_exe_dir_text);
+        path_set(settings->default_exe_dir[os], default_exe_dir_text);
     }
 
     settings->default_tab_is_new = sqlite3_column_int(stmt, col++);
@@ -47,7 +47,7 @@ static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
     settings->display_tab = NULL;
     if(sqlite3_column_type(stmt, col) != SQLITE_NULL) {
         TabId tab_id = sqlite3_column_int(stmt, col);
-        for each(Tab_ptr, tab, TabList, app.tabs) {
+        for each(Tab_ptr, tab, TabList, tabs) {
             if(tab->id == tab_id) {
                 settings->display_tab = tab;
                 break;

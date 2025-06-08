@@ -2,7 +2,7 @@
 #include "db_i.h"
 #include "path/path.h"
 
-#include <app.h>
+#include <globals.h>
 
 #define DB_FILE "temp.sqlite3" // TODO: change when its ready
 
@@ -65,7 +65,7 @@ static void db_append_backup_id(m_string_ptr str) {
     m_string_init_printf(
         id_str,
         "_v%s_%04d%02d%02d_%02d%02d%02d_%d",
-        app.version,
+        F95CHECKER_VERSION,
         tp->tm_year + 1900,
         tp->tm_mon + 1,
         tp->tm_mday,

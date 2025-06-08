@@ -1,7 +1,7 @@
 #include "games.h"
 #include "db_i.h"
 
-#include <app.h>
+#include <globals.h>
 
 DB_TABLE_DEFINE(_GAMES, games, GamesColumn)
 
@@ -85,7 +85,7 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     for(size_t i = 0; i < json_object_array_length(labels_json); i++) {
         json_object* label_id = json_object_array_get_idx(labels_json, i);
         LabelId label_id_int = json_object_get_int(label_id);
-        for each(Label_ptr, label, LabelList, app.labels) {
+        for each(Label_ptr, label, LabelList, labels) {
             if(label->id == label_id_int) {
                 label_ptr_list_push_front(game->labels, label);
             }
@@ -96,7 +96,7 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     game->tab = NULL;
     if(sqlite3_column_type(stmt, col) != SQLITE_NULL) {
         TabId tab_id = sqlite3_column_int(stmt, col);
-        for each(Tab_ptr, tab, TabList, app.tabs) {
+        for each(Tab_ptr, tab, TabList, tabs) {
             if(tab->id == tab_id) {
                 game->tab = tab;
                 break;
