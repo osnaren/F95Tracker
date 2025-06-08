@@ -54,7 +54,7 @@ typedef struct {
     MStringList unknown_tags;
     bool unknown_tags_flag;
     LabelPtrList labels;
-    Tab* tab;
+    Tab_ptr tab;
     m_string_t notes;
     m_string_t image_url;
     MStringList previews_urls;

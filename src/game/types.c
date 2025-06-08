@@ -4,32 +4,6 @@
 
 SMARTENUM_DEFINE(_GameCategory, GameCategory)
 
-void GameReview_init(GameReview* review) {
-    m_string_init(review->user);
-    m_string_init(review->message);
-}
-
-void GameReview_init_set(GameReview* review, const GameReview* src) {
-    m_string_init_set(review->user, src->user);
-    review->score = src->score;
-    m_string_init_set(review->message, src->message);
-    review->likes = src->likes;
-    review->timestamp = src->timestamp;
-}
-
-void GameReview_set(GameReview* review, const GameReview* src) {
-    m_string_set(review->user, src->user);
-    review->score = src->score;
-    m_string_set(review->message, src->message);
-    review->likes = src->likes;
-    review->timestamp = src->timestamp;
-}
-
-void GameReview_clear(GameReview* review) {
-    m_string_clear(review->user);
-    m_string_clear(review->message);
-}
-
 SMARTENUM_DEFINE(_GameStatus, GameStatus)
 const GameStatusInfo game_status[1 + GameStatus_COUNT] = {
     [GameStatus_Normal] = {.color = {{0.95, 0.95, 0.95, 1.0}}, .icon = mdi_lightning_bolt_circle},

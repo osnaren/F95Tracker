@@ -29,7 +29,7 @@ typedef struct {
         DbMessageType_CreateLabel,
         DbMessageType_DeleteLabel,
     } type;
-    m_eflag_t* eflag;
+    m_eflag_ptr eflag;
     union {
         union {
             Settings* settings;
@@ -39,19 +39,19 @@ typedef struct {
         } load;
         union {
             struct {
-                const Settings* ptr;
+                Settings* ptr;
                 SettingsColumn column;
             } setting;
             struct {
-                const Game* ptr;
+                Game* ptr;
                 GamesColumn column;
             } game;
             struct {
-                const Tab* ptr;
+                Tab_ptr ptr;
                 TabsColumn column;
             } tab;
             struct {
-                const Label* ptr;
+                Label_ptr ptr;
                 LabelsColumn column;
             } label;
         } save;
@@ -63,11 +63,11 @@ typedef struct {
             } game;
             struct {
                 TabList* tabs;
-                Tab** out;
+                Tab_ptr* out;
             } tab;
             struct {
                 LabelList* labels;
-                Label** out;
+                Label_ptr* out;
             } label;
         } create;
         union {
@@ -76,11 +76,11 @@ typedef struct {
                 GameDict* games;
             } game;
             struct {
-                Tab* ptr;
+                Tab_ptr ptr;
                 TabList* tabs;
             } tab;
             struct {
-                Label* ptr;
+                Label_ptr ptr;
                 LabelList* labels;
             } label;
         } delete;
@@ -110,25 +110,25 @@ static inline void db_perror(Db* db, const char* s) {
     assert(res == exp)
 
 void db_create_table(Db* db, const DbTable* table);
-void db_append_column_names(m_string_t* sql, const DbTable* table);
+void db_append_column_names(m_string_ptr sql, const DbTable* table);
 
 void db_do_load_settings(Db* db, Settings* settings);
-void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column);
+void db_do_save_setting(Db* db, Settings* settings, SettingsColumn column);
 
 void db_do_load_games(Db* db, GameDict* games);
-void db_do_save_game(Db* db, const Game* game, GamesColumn column);
+void db_do_save_game(Db* db, Game* game, GamesColumn column);
 Game* db_do_create_game(Db* db, GameDict* games, GameId id);
 void db_do_delete_game(Db* db, Game* game, GameDict* games);
 
 void db_do_load_tabs(Db* db, TabList* tabs);
-void db_do_save_tab(Db* db, const Tab* tab, TabsColumn column);
-Tab* db_do_create_tab(Db* db, TabList* tabs);
-void db_do_delete_tab(Db* db, Tab* tab, TabList* tabs);
+void db_do_save_tab(Db* db, Tab_ptr tab, TabsColumn column);
+Tab_ptr db_do_create_tab(Db* db, TabList* tabs);
+void db_do_delete_tab(Db* db, Tab_ptr tab, TabList* tabs);
 
 void db_do_load_labels(Db* db, LabelList* labels);
-void db_do_save_label(Db* db, const Label* label, LabelsColumn column);
-Label* db_do_create_label(Db* db, LabelList* labels);
-void db_do_delete_label(Db* db, Label* label, LabelList* labels);
+void db_do_save_label(Db* db, Label_ptr label, LabelsColumn column);
+Label_ptr db_do_create_label(Db* db, LabelList* labels);
+void db_do_delete_label(Db* db, Label_ptr label, LabelList* labels);
 
 #define sqlite3_column_count(pStmt)   (size_t)sqlite3_column_count(pStmt)
 #define sqlite3_column_text(pStmt, i) (const char*)sqlite3_column_text(pStmt, i)

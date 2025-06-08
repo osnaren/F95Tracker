@@ -47,13 +47,13 @@ static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
     settings->display_tab = NULL;
     if(sqlite3_column_type(stmt, col) != SQLITE_NULL) {
         TabId tab_id = sqlite3_column_int(stmt, col);
-        for
-            M_EACH(tab, app.tabs, TabList) {
-                if(tab->id == tab_id) {
-                    settings->display_tab = tab;
-                    break;
-                }
+        for each(_tab, app.tabs, TabList) {
+            Tab_ptr tab = *_tab;
+            if(tab->id == tab_id) {
+                settings->display_tab = tab;
+                break;
             }
+        }
     }
     col++;
 
@@ -180,7 +180,7 @@ void db_do_load_settings(Db* db, Settings* settings) {
 
     // Read the main settings row
     m_string_set(sql, "SELECT ");
-    db_append_column_names(&sql, &settings_table);
+    db_append_column_names(sql, &settings_table);
     m_string_cat_printf(sql, " FROM %s", settings_table.name);
     sqlite3_stmt* stmt;
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
@@ -197,7 +197,7 @@ void db_do_load_settings(Db* db, Settings* settings) {
     m_string_clear(sql);
 }
 
-void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column) {
+void db_do_save_setting(Db* db, Settings* settings, SettingsColumn column) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
@@ -350,10 +350,9 @@ void db_do_save_setting(Db* db, const Settings* settings, SettingsColumn column)
     case SettingsColumn_manual_sort_list:
         json_object* manual_sort_list_json =
             json_object_new_array_ext(game_id_array_size(settings->manual_sort_list));
-        for
-            M_EACH(id, settings->manual_sort_list, GameIdArray) {
-                json_object_array_add(manual_sort_list_json, json_object_new_int(*id));
-            }
+        for each(id, settings->manual_sort_list, GameIdArray) {
+            json_object_array_add(manual_sort_list_json, json_object_new_int(*id));
+        }
         res = sqlite3_bind_json(stmt, 1, manual_sort_list_json);
         json_object_put(manual_sort_list_json);
         break;

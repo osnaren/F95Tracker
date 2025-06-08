@@ -17,6 +17,7 @@
 #include <mlib/m-list.h>
 #include <mlib/m-string.h>
 #include <mlib/m-thread.h>
+#include <mlib/m-tuple.h>
 // #include <stdarg.h>
 // #include <stdbool.h>
 // #include <stddef.h>
@@ -104,15 +105,16 @@ typedef long double flt128_t;
 #define STR(x)  #x
 #define XSTR(x) STR(x)
 
+#define each(item, container, container_type) M_EACH(item, container, container_type)
+
 M_LIST_DUAL_PUSH_DEF_AS(m_string_list, MStringList, MStringListIt, m_string_t)
 #define M_OPL_MStringList() M_LIST_OPLIST(m_string_list)
 
-typedef struct {
+typedef struct m_eflag_s {
     m_mutex_t mutex;
     m_cond_t cond;
-} m_eflag_s;
-
-typedef m_eflag_s m_eflag_t[1];
+} m_eflag_t[1];
+typedef struct m_eflag_s* m_eflag_ptr;
 
 static inline void m_eflag_init(m_eflag_t eflag) {
     m_mutex_init(eflag->mutex);

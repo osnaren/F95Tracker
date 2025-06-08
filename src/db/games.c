@@ -85,25 +85,25 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     for(size_t i = 0; i < json_object_array_length(labels_json); i++) {
         json_object* label_id = json_object_array_get_idx(labels_json, i);
         LabelId label_id_int = json_object_get_int(label_id);
-        for
-            M_EACH(label, app.labels, LabelList) {
-                if(label->id == label_id_int) {
-                    label_ptr_list_push_front(game->labels, label);
-                }
+        for each(_label, app.labels, LabelList) {
+            Label_ptr label = *_label;
+            if(label->id == label_id_int) {
+                label_ptr_list_push_front(game->labels, label);
             }
+        }
     }
     json_object_put(labels_json);
 
     game->tab = NULL;
     if(sqlite3_column_type(stmt, col) != SQLITE_NULL) {
         TabId tab_id = sqlite3_column_int(stmt, col);
-        for
-            M_EACH(tab, app.tabs, TabList) {
-                if(tab->id == tab_id) {
-                    game->tab = tab;
-                    break;
-                }
+        for each(_tab, app.tabs, TabList) {
+            Tab_ptr tab = *_tab;
+            if(tab->id == tab_id) {
+                game->tab = tab;
+                break;
             }
+        }
     }
     col++;
 
@@ -131,16 +131,16 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     for(size_t i = 0; i < json_object_array_length(reviews_json); i++) {
         json_object* review = json_object_array_get_idx(reviews_json, i);
         GameReview review_obj;
-        GameReview_init(&review_obj);
+        game_review_init(review_obj);
         m_string_set(
-            review_obj.user,
+            review_obj->user,
             json_object_get_string(json_object_object_get(review, "user")));
-        review_obj.score = json_object_get_int(json_object_object_get(review, "score"));
+        review_obj->score = json_object_get_int(json_object_object_get(review, "score"));
         m_string_set(
-            review_obj.message,
+            review_obj->message,
             json_object_get_string(json_object_object_get(review, "message")));
-        review_obj.likes = json_object_get_int(json_object_object_get(review, "likes"));
-        review_obj.timestamp = json_object_get_int64(json_object_object_get(review, "timestamp"));
+        review_obj->likes = json_object_get_int(json_object_object_get(review, "likes"));
+        review_obj->timestamp = json_object_get_int64(json_object_object_get(review, "timestamp"));
         game_review_list_push_front_move(game->reviews, &review_obj);
     }
     json_object_put(reviews_json);
@@ -182,7 +182,7 @@ void db_do_load_games(Db* db, GameDict* games) {
 
     // Read all games
     m_string_set(sql, "SELECT ");
-    db_append_column_names(&sql, &games_table);
+    db_append_column_names(sql, &games_table);
     m_string_cat_printf(sql, " FROM %s", games_table.name);
     sqlite3_stmt* stmt;
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
@@ -202,7 +202,7 @@ void db_do_load_games(Db* db, GameDict* games) {
     m_string_clear(sql);
 }
 
-void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
+void db_do_save_game(Db* db, Game* game, GamesColumn column) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
@@ -284,12 +284,12 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
     case GamesColumn_executables:
         json_object* executables_json =
             json_object_new_array_ext(m_string_list_size(game->executables));
-        for
-            M_EACH(executable, game->executables, MStringList) {
-                json_object_array_add(
-                    executables_json,
-                    json_object_new_string(m_string_get_cstr(*executable)));
-            }
+        for each(_executable, game->executables, MStringList) {
+            m_string_ptr executable = *_executable;
+            json_object_array_add(
+                executables_json,
+                json_object_new_string(m_string_get_cstr(executable)));
+        }
         res = sqlite3_bind_json(stmt, 1, executables_json);
         json_object_put(executables_json);
         break;
@@ -311,12 +311,12 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
     case GamesColumn_unknown_tags:
         json_object* unknown_tags_json =
             json_object_new_array_ext(m_string_list_size(game->unknown_tags));
-        for
-            M_EACH(unknown_tag, game->unknown_tags, MStringList) {
-                json_object_array_add(
-                    unknown_tags_json,
-                    json_object_new_string(m_string_get_cstr(*unknown_tag)));
-            }
+        for each(_unknown_tag, game->unknown_tags, MStringList) {
+            m_string_ptr unknown_tag = *_unknown_tag;
+            json_object_array_add(
+                unknown_tags_json,
+                json_object_new_string(m_string_get_cstr(unknown_tag)));
+        }
         res = sqlite3_bind_json(stmt, 1, unknown_tags_json);
         json_object_put(unknown_tags_json);
         break;
@@ -325,10 +325,10 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
         break;
     case GamesColumn_labels:
         json_object* labels_json = json_object_new_array_ext(label_ptr_list_size(game->labels));
-        for
-            M_EACH(label, game->labels, LabelPtrList) {
-                json_object_array_add(labels_json, json_object_new_int((*label)->id));
-            }
+        for each(_label, game->labels, LabelPtrList) {
+            Label_ptr label = *_label;
+            json_object_array_add(labels_json, json_object_new_int(label->id));
+        }
         res = sqlite3_bind_json(stmt, 1, labels_json);
         json_object_put(labels_json);
         break;
@@ -348,12 +348,12 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
     case GamesColumn_previews_urls:
         json_object* previews_urls_json =
             json_object_new_array_ext(m_string_list_size(game->previews_urls));
-        for
-            M_EACH(preview_url, game->previews_urls, MStringList) {
-                json_object_array_add(
-                    previews_urls_json,
-                    json_object_new_string(m_string_get_cstr(*preview_url)));
-            }
+        for each(_preview_url, game->previews_urls, MStringList) {
+            m_string_ptr preview_url = *_preview_url;
+            json_object_array_add(
+                previews_urls_json,
+                json_object_new_string(m_string_get_cstr(preview_url)));
+        }
         res = sqlite3_bind_json(stmt, 1, previews_urls_json);
         json_object_put(previews_urls_json);
         break;
@@ -366,25 +366,25 @@ void db_do_save_game(Db* db, const Game* game, GamesColumn column) {
     case GamesColumn_reviews:
         json_object* reviews_json =
             json_object_new_array_ext(game_review_list_size(game->reviews));
-        for
-            M_EACH(review, game->reviews, GameReviewList) {
-                json_object* review_json = json_object_new_object();
-                json_object_object_add(
-                    review_json,
-                    "user",
-                    json_object_new_string(m_string_get_cstr(review->user)));
-                json_object_object_add(review_json, "score", json_object_new_int(review->score));
-                json_object_object_add(
-                    review_json,
-                    "message",
-                    json_object_new_string(m_string_get_cstr(review->message)));
-                json_object_object_add(review_json, "likes", json_object_new_int(review->likes));
-                json_object_object_add(
-                    review_json,
-                    "timestamp",
-                    json_object_new_int64(review->timestamp));
-                json_object_array_add(reviews_json, review_json);
-            }
+        for each(_review, game->reviews, GameReviewList) {
+            GameReview_ptr review = *_review;
+            json_object* review_json = json_object_new_object();
+            json_object_object_add(
+                review_json,
+                "user",
+                json_object_new_string(m_string_get_cstr(review->user)));
+            json_object_object_add(review_json, "score", json_object_new_int(review->score));
+            json_object_object_add(
+                review_json,
+                "message",
+                json_object_new_string(m_string_get_cstr(review->message)));
+            json_object_object_add(review_json, "likes", json_object_new_int(review->likes));
+            json_object_object_add(
+                review_json,
+                "timestamp",
+                json_object_new_int64(review->timestamp));
+            json_object_array_add(reviews_json, review_json);
+        }
         res = sqlite3_bind_json(stmt, 1, reviews_json);
         json_object_put(reviews_json);
         break;
@@ -404,12 +404,11 @@ Game* db_do_create_game(Db* db, GameDict* games, GameId id) {
     bool custom = id < 0;
     if(custom) {
         id = -1;
-        for
-            M_EACH(pair, *games, GameDict) {
-                if(pair->key <= id) {
-                    id = pair->key - 1;
-                }
+        for each(pair, *games, GameDict) {
+            if(pair->key <= id) {
+                id = pair->key - 1;
             }
+        }
         assert(id < 0);
     }
 
@@ -421,7 +420,7 @@ Game* db_do_create_game(Db* db, GameDict* games, GameId id) {
         sql,
         "INSERT INTO %s (id,custom,name,added_on) VALUES (?,?,?,?) RETURNING ",
         games_table.name);
-    db_append_column_names(&sql, &games_table);
+    db_append_column_names(sql, &games_table);
     sqlite3_stmt* stmt;
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");

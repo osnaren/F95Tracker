@@ -51,13 +51,13 @@ static void db_send_message_async(Db* db, const DbMessage message) {
 static void db_send_message_blocking(Db* db, DbMessage message) {
     m_eflag_t eflag;
     m_eflag_init(eflag);
-    message.eflag = &eflag;
+    message.eflag = eflag;
     db_send_message_async(db, message);
     m_eflag_wait(eflag);
     m_eflag_clear(eflag);
 }
 
-static void db_append_backup_id(m_string_t* str) {
+static void db_append_backup_id(m_string_ptr str) {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
     struct tm* tp = localtime(&ts.tv_sec);
@@ -74,7 +74,7 @@ static void db_append_backup_id(m_string_t* str) {
         tp->tm_sec,
         ts.tv_nsec);
     m_string_replace_all_cstr(id_str, ".", "");
-    m_string_cat(*str, id_str);
+    m_string_cat(str, id_str);
     m_string_clear(id_str);
 }
 
@@ -94,7 +94,7 @@ static void db_do_backup(Db* db) {
     Path* backup = path_dup(db->path);
     m_string_t name;
     m_string_init_set(name, path_name(backup));
-    db_append_backup_id(&name);
+    db_append_backup_id(name);
     path_set_name(backup, m_string_get_cstr(name));
     m_string_clear(name);
 
@@ -110,27 +110,27 @@ static void db_do_backup(Db* db) {
     path_free(backup);
 }
 
-void db_append_column_names(m_string_t* sql, const DbTable* table) {
+void db_append_column_names(m_string_ptr sql, const DbTable* table) {
     for(size_t col = 0; col < table->columns_count; col++) {
-        m_string_cat(*sql, table->columns[col].name);
-        m_string_cat(*sql, ",");
+        m_string_cat(sql, table->columns[col].name);
+        m_string_cat(sql, ",");
     }
-    m_string_strim(*sql, ",");
+    m_string_strim(sql, ",");
 }
 
-static void db_append_column_spec(m_string_t* sql, const DbColumn* column) {
-    m_string_cat_printf(*sql, "%s %s", column->name, column->type);
+static void db_append_column_spec(m_string_ptr sql, const DbColumn* column) {
+    m_string_cat_printf(sql, "%s %s", column->name, column->type);
     if(column->dflt) {
-        m_string_cat_printf(*sql, " DEFAULT %s", column->dflt);
+        m_string_cat_printf(sql, " DEFAULT %s", column->dflt);
     }
     if(column->primary_key) {
-        m_string_cat(*sql, " PRIMARY KEY");
+        m_string_cat(sql, " PRIMARY KEY");
         if(column->autoincrement) {
-            m_string_cat(*sql, " AUTOINCREMENT");
+            m_string_cat(sql, " AUTOINCREMENT");
         }
     }
     if(column->extra) {
-        m_string_cat_printf(*sql, " %s", column->extra);
+        m_string_cat_printf(sql, " %s", column->extra);
     }
 }
 
@@ -158,7 +158,7 @@ void db_create_table(Db* db, const DbTable* table) {
     m_string_printf(sql, "CREATE TABLE IF NOT EXISTS %s (", table->name);
     for(size_t col = 0; col < table->columns_count; col++) {
         const DbColumn* column = &table->columns[col];
-        db_append_column_spec(&sql, column);
+        db_append_column_spec(sql, column);
         m_string_cat(sql, ",");
     }
     m_string_strim(sql, ",");
@@ -220,7 +220,7 @@ void db_create_table(Db* db, const DbTable* table) {
         db_migration_prelude(db, "Adding '%s.%s'", table->name, column->name);
 
         m_string_printf(sql, "ALTER TABLE %s ADD COLUMN ", table->name);
-        db_append_column_spec(&sql, column);
+        db_append_column_spec(sql, column);
         res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
         db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
     }
@@ -299,7 +299,7 @@ void db_create_table(Db* db, const DbTable* table) {
 
         m_string_t table_temp;
         m_string_init_printf(table_temp, "%s_temp", table->name);
-        db_append_backup_id(&table_temp);
+        db_append_backup_id(table_temp);
 
         m_string_printf(
             sql,
@@ -312,9 +312,9 @@ void db_create_table(Db* db, const DbTable* table) {
         db_create_table(db, table);
 
         m_string_printf(sql, "INSERT INTO %s (", table->name);
-        db_append_column_names(&sql, table);
+        db_append_column_names(sql, table);
         m_string_cat(sql, ") SELECT ");
-        db_append_column_names(&sql, table);
+        db_append_column_names(sql, table);
         m_string_cat_printf(sql, " FROM %s", m_string_get_cstr(table_temp));
         res = sqlite3_exec(db->conn, m_string_get_cstr(sql), NULL, NULL, NULL);
         db_assert(db, res, SQLITE_OK, "sqlite3_exec()");
@@ -365,7 +365,7 @@ void db_load_settings(Db* db, Settings* settings) {
     db_send_message_blocking(db, message);
 }
 
-void db_save_setting(Db* db, const Settings* settings, SettingsColumn column) {
+void db_save_setting(Db* db, Settings* settings, SettingsColumn column) {
     const DbMessage message = {
         .type = DbMessageType_SaveSetting,
         .save.setting =
@@ -385,7 +385,7 @@ void db_load_games(Db* db, GameDict* games) {
     db_send_message_blocking(db, message);
 }
 
-void db_save_game(Db* db, const Game* game, GamesColumn column) {
+void db_save_game(Db* db, Game* game, GamesColumn column) {
     const DbMessage message = {
         .type = DbMessageType_SaveGame,
         .save.game =
@@ -432,7 +432,7 @@ void db_load_tabs(Db* db, TabList* tabs) {
     db_send_message_blocking(db, message);
 }
 
-void db_save_tab(Db* db, const Tab* tab, TabsColumn column) {
+void db_save_tab(Db* db, Tab_ptr tab, TabsColumn column) {
     const DbMessage message = {
         .type = DbMessageType_SaveTab,
         .save.tab =
@@ -444,8 +444,8 @@ void db_save_tab(Db* db, const Tab* tab, TabsColumn column) {
     db_send_message_async(db, message);
 }
 
-Tab* db_create_tab(Db* db, TabList* tabs) {
-    Tab* tab;
+Tab_ptr db_create_tab(Db* db, TabList* tabs) {
+    Tab_ptr tab;
     const DbMessage message = {
         .type = DbMessageType_CreateTab,
         .create.tab =
@@ -458,7 +458,7 @@ Tab* db_create_tab(Db* db, TabList* tabs) {
     return tab;
 }
 
-void db_delete_tab(Db* db, Tab* tab, TabList* tabs) {
+void db_delete_tab(Db* db, Tab_ptr tab, TabList* tabs) {
     const DbMessage message = {
         .type = DbMessageType_DeleteTab,
         .delete.tab =
@@ -478,7 +478,7 @@ void db_load_labels(Db* db, LabelList* labels) {
     db_send_message_blocking(db, message);
 }
 
-void db_save_label(Db* db, const Label* label, LabelsColumn column) {
+void db_save_label(Db* db, Label_ptr label, LabelsColumn column) {
     const DbMessage message = {
         .type = DbMessageType_SaveLabel,
         .save.label =
@@ -490,8 +490,8 @@ void db_save_label(Db* db, const Label* label, LabelsColumn column) {
     db_send_message_async(db, message);
 }
 
-Label* db_create_label(Db* db, LabelList* labels) {
-    Label* label;
+Label_ptr db_create_label(Db* db, LabelList* labels) {
+    Label_ptr label;
     const DbMessage message = {
         .type = DbMessageType_CreateLabel,
         .create.label =
@@ -504,7 +504,7 @@ Label* db_create_label(Db* db, LabelList* labels) {
     return label;
 }
 
-void db_delete_label(Db* db, Label* label, LabelList* labels) {
+void db_delete_label(Db* db, Label_ptr label, LabelList* labels) {
     const DbMessage message = {
         .type = DbMessageType_DeleteLabel,
         .delete.label =
@@ -579,7 +579,7 @@ static void db_thread(void* ctx) {
         }
 
         if(message.eflag != NULL) {
-            m_eflag_broadcast(*message.eflag);
+            m_eflag_broadcast(message.eflag);
         }
     }
 }

@@ -38,7 +38,7 @@ void gui_window_draw(Gui* gui) {
     ImGui_Text("Browser Custom Arguments:");
     ImGui_SameLine();
     ImGui_SetNextItemWidth(690.0f);
-    ImGui_InputTextMstring(
+    ImGui_InputTextMString(
         "###browser_custom_arguments",
         app.settings->browser_custom_arguments,
         ImGuiInputTextFlags_None);
@@ -86,21 +86,21 @@ void gui_window_draw(Gui* gui) {
     ImGui_AlignTextToFramePadding();
     ImGui_Text("Tabs:");
     if(ImGui_Button("Test add new tab")) {
-        Tab* tab = db_create_tab(app.db, &app.tabs);
+        Tab_ptr tab = db_create_tab(app.db, &app.tabs);
         UNUSED(tab);
     }
-    for
-        M_EACH(tab, app.tabs, TabList) {
-            ImGui_PushIDInt(tab->id);
-            if(ImGui_Button(mdi_trash_can_outline)) {
-                db_delete_tab(app.db, tab, &app.tabs);
-                ImGui_PopID();
-                continue;
-            }
-            ImGui_SameLine();
-            ImGui_Text("%d %d %s", tab->position, tab->id, m_string_get_cstr(tab->name));
+    for each(_tab, app.tabs, TabList) {
+        Tab_ptr tab = *_tab;
+        ImGui_PushIDInt(tab->id);
+        if(ImGui_Button(mdi_trash_can_outline)) {
+            db_delete_tab(app.db, tab, &app.tabs);
             ImGui_PopID();
+            continue;
         }
+        ImGui_SameLine();
+        ImGui_Text("%d %d %s", tab->position, tab->id, m_string_get_cstr(tab->name));
+        ImGui_PopID();
+    }
     ImGui_EndGroup();
 
     ImGui_SameLine();
@@ -109,33 +109,32 @@ void gui_window_draw(Gui* gui) {
     ImGui_AlignTextToFramePadding();
     ImGui_Text("Labels:");
     if(ImGui_Button("Test add new label")) {
-        Label* label = db_create_label(app.db, &app.labels);
+        Label_ptr label = db_create_label(app.db, &app.labels);
         UNUSED(label);
     }
-    for
-        M_EACH(label, app.labels, LabelList) {
-            ImGui_PushIDInt(label->id);
-            if(ImGui_Button(mdi_trash_can_outline)) {
-                db_delete_label(app.db, label, &app.labels);
-                ImGui_PopID();
-                continue;
-            }
-            ImGui_SameLine();
-            ImGui_Text("%d %d %s", label->position, label->id, m_string_get_cstr(label->name));
+    for each(_label, app.labels, LabelList) {
+        Label_ptr label = *_label;
+        ImGui_PushIDInt(label->id);
+        if(ImGui_Button(mdi_trash_can_outline)) {
+            db_delete_label(app.db, label, &app.labels);
             ImGui_PopID();
+            continue;
         }
+        ImGui_SameLine();
+        ImGui_Text("%d %d %s", label->position, label->id, m_string_get_cstr(label->name));
+        ImGui_PopID();
+    }
     ImGui_EndGroup();
 
-    for
-        M_EACH(pair, app.games, GameDict) {
-            Game* game = pair->value;
-            ImGui_Text("%d %s", game->id, m_string_get_cstr(game->name));
-            for
-                M_EACH(label, game->labels, LabelPtrList) {
-                    ImGui_SameLine();
-                    ImGui_TextUnformatted(m_string_get_cstr((*label)->name));
-                }
+    for each(pair, app.games, GameDict) {
+        Game* game = pair->value;
+        ImGui_Text("%d %s", game->id, m_string_get_cstr(game->name));
+        for each(_label, game->labels, LabelPtrList) {
+            Label_ptr label = *_label;
+            ImGui_SameLine();
+            ImGui_TextUnformatted(m_string_get_cstr(label->name));
         }
+    }
 
     ImGui_End();
 }

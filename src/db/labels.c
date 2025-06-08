@@ -3,7 +3,7 @@
 
 DB_TABLE_DEFINE(_LABELS, labels, LabelsColumn)
 
-static void db_parse_label(Db* db, sqlite3_stmt* stmt, Label* label) {
+static void db_parse_label(Db* db, sqlite3_stmt* stmt, Label_ptr label) {
     UNUSED(db);
     size_t col = 0;
 
@@ -23,7 +23,7 @@ void db_do_load_labels(Db* db, LabelList* labels) {
 
     // Read all labels
     m_string_set(sql, "SELECT ");
-    db_append_column_names(&sql, &labels_table);
+    db_append_column_names(sql, &labels_table);
     m_string_cat_printf(sql, " FROM %s ORDER BY position ASC", labels_table.name);
     sqlite3_stmt* stmt;
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
@@ -32,7 +32,7 @@ void db_do_load_labels(Db* db, LabelList* labels) {
     assert(sqlite3_column_count(stmt) == labels_table.columns_count);
     while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
         db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
-        Label* label = label_list_push_front_new(*labels);
+        Label_ptr label = *label_list_push_front_new(*labels);
         db_parse_label(db, stmt, label);
     }
 
@@ -44,7 +44,7 @@ void db_do_load_labels(Db* db, LabelList* labels) {
     label_list_update_positions(labels);
 }
 
-void db_do_save_label(Db* db, const Label* label, LabelsColumn column) {
+void db_do_save_label(Db* db, Label_ptr label, LabelsColumn column) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
@@ -86,13 +86,13 @@ void db_do_save_label(Db* db, const Label* label, LabelsColumn column) {
     m_string_clear(sql);
 }
 
-Label* db_do_create_label(Db* db, LabelList* labels) {
+Label_ptr db_do_create_label(Db* db, LabelList* labels) {
     int32_t res;
     m_string_t sql;
     m_string_init(sql);
 
     m_string_printf(sql, "INSERT INTO %s DEFAULT VALUES RETURNING ", labels_table.name);
-    db_append_column_names(&sql, &labels_table);
+    db_append_column_names(sql, &labels_table);
     sqlite3_stmt* stmt;
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
@@ -101,7 +101,7 @@ Label* db_do_create_label(Db* db, LabelList* labels) {
     res = sqlite3_step(stmt);
     db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
 
-    Label* label = label_list_push_front_new(*labels);
+    Label_ptr label = *label_list_push_front_new(*labels);
     db_parse_label(db, stmt, label);
 
     res = sqlite3_finalize(stmt);
@@ -113,12 +113,12 @@ Label* db_do_create_label(Db* db, LabelList* labels) {
     return label;
 }
 
-void db_do_delete_label(Db* db, Label* label, LabelList* labels) {
+void db_do_delete_label(Db* db, Label_ptr label, LabelList* labels) {
     LabelId id = label->id;
     bool removed = false;
     LabelListIt it;
     for(label_list_it(it, *labels); !label_list_end_p(it); label_list_next(it)) {
-        if(label_list_cref(it) == label) {
+        if(*label_list_cref(it) == label) {
             label_list_remove(*labels, it);
             removed = true;
             break;

@@ -1,12 +1,12 @@
 #include "util.h"
 
 int32_t gui_util_input_text_resize_callback(ImGuiInputTextCallbackData* data) {
-    m_string_t* str = data->UserData;
+    m_string_ptr str = data->UserData;
     if(data->EventFlag & ImGuiInputTextFlags_CallbackResize) {
-        m_str1ng_set_size(*str, strlen(data->Buf));
-        m_string_reserve(*str, data->BufTextLen + 1);
-        m_str1ng_set_size(*str, data->BufTextLen);
-        data->Buf = (char*)m_string_get_cstr(*str);
+        m_str1ng_set_size(str, strlen(data->Buf));
+        m_string_reserve(str, data->BufTextLen + 1);
+        m_str1ng_set_size(str, data->BufTextLen);
+        data->Buf = (char*)m_string_get_cstr(str);
     }
     return 0;
 }

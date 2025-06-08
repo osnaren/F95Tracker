@@ -49,10 +49,9 @@ exit_gui:
 
     db_free(app.db);
 
-    for
-        M_EACH(pair, app.games, GameDict) {
-            game_free(pair->value);
-        }
+    for each(pair, app.games, GameDict) {
+        game_free(pair->value);
+    }
     game_dict_clear(app.games);
 
     settings_free(app.settings);

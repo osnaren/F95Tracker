@@ -12,25 +12,16 @@
     _($, Misc, 3)
 SMARTENUM_DECLARE(_GameCategory, GameCategory)
 
-typedef struct {
-    m_string_t user;
-    uint8_t score;
-    m_string_t message;
-    uint32_t likes;
-    Timestamp timestamp;
-} GameReview;
-
-void GameReview_init(GameReview* review);
-void GameReview_init_set(GameReview* review, const GameReview* src);
-void GameReview_set(GameReview* review, const GameReview* src);
-void GameReview_clear(GameReview* review);
-#define M_OPL_GameReview()                    \
-    M_OPEXTEND(                               \
-        M_POD_OPLIST,                         \
-        INIT(API_2(GameReview_init)),         \
-        INIT_SET(API_6(GameReview_init_set)), \
-        SET(API_6(GameReview_set)),           \
-        CLEAR(API_2(GameReview_clear)))
+M_TUPLE_DEF2_AS(
+    game_review,
+    GameReview,
+    (user, m_string_t),
+    (score, uint8_t),
+    (message, m_string_t),
+    (likes, uint32_t),
+    (timestamp, Timestamp))
+#define M_OPL_GameReview() M_A1_OPLIST
+typedef game_review_ptr GameReview_ptr;
 
 M_LIST_DUAL_PUSH_DEF_AS(game_review_list, GameReviewList, GameReviewListIt, GameReview)
 #define M_OPL_GameReviewList() M_LIST_OPLIST(game_review_list)

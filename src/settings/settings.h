@@ -37,7 +37,7 @@ typedef struct {
     Path* default_exe_dir[1 + Os_COUNT];
     bool default_tab_is_new;
     DisplayMode display_mode;
-    Tab* display_tab;
+    Tab_ptr display_tab;
     Path* downloads_dir[1 + Os_COUNT];
     bool ext_background_add;
     bool ext_highlight_tags;
