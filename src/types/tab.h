@@ -8,19 +8,17 @@
 
 typedef int32_t TabId;
 
-M_TUPLE_DEF2_AS(
+M_TUPLE_EX_DEF(
     tab,
     Tab,
     (id, TabId),
     (name, m_string_t),
     (icon, m_string_t),
-    (color, ImColor, M_POD_OPLIST),
+    (color, ImColor),
     (position, int32_t))
-#define M_OPL_Tab() M_A1_OPLIST
-typedef tab_ptr Tab_ptr;
+#define M_OPL_Tab() M_TUPLE_EX_OPL(tab, TabId, m_string_t, m_string_t, ImColor, int32_t)
 
-M_LIST_DUAL_PUSH_DEF_AS(tab_list, TabList, TabListIt, Tab)
-#define M_OPL_TabList() M_LIST_OPLIST(tab_list)
-typedef tab_list_ptr TabList_ptr;
+M_LIST_DUAL_PUSH_EX_DEF(tab_list, TabList, Tab)
+#define M_OPL_TabList() M_LIST_DUAL_PUSH_EX_OPL(tab_list, Tab)
 
 void tab_list_update_positions(TabList_ptr tabs);

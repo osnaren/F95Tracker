@@ -105,6 +105,35 @@ typedef long double flt128_t;
 #define STR(x)  #x
 #define XSTR(x) STR(x)
 
+#define M_ARRAY_EX_DEF(name, name_t, ...)                  \
+    M_ARRAY_DEF_AS(name, name_t, name_t##_it, __VA_ARGS__) \
+    typedef name##_ptr name_t##_ptr;
+#define M_ARRAY_EX_OPL(name, type_t) M_ARRAY_OPLIST(name, M_GLOBAL_OPLIST_OR_DEF(type_t)())
+
+#define M_BUFFER_EX_DEF(name, name_t, ...)     \
+    M_BUFFER_DEF_AS(name, name_t, __VA_ARGS__) \
+    typedef name##_ptr name_t##_ptr;
+#define M_BUFFER_EX_OPL(name, type_t) M_BUFFER_OPLIST(name, M_GLOBAL_OPLIST_OR_DEF(type_t)())
+
+#define M_DICT_OA_EX_DEF(name, name_t, ...)                                   \
+    M_DICT_OA_DEF2_AS(name, name_t, name_t##_it, name_t##_itref, __VA_ARGS__) \
+    typedef name##_ptr name_t##_ptr;                                          \
+    typedef name##_pair_ct name_t##_pair;
+#define M_DICT_OA_EX_OPL(name, key_t, value_t) \
+    M_DICT_OPLIST(name, M_GLOBAL_OPLIST_OR_DEF(key_t)(), M_GLOBAL_OPLIST_OR_DEF(value_t)())
+
+#define M_LIST_DUAL_PUSH_EX_DEF(name, name_t, ...)                  \
+    M_LIST_DUAL_PUSH_DEF_AS(name, name_t, name_t##_it, __VA_ARGS__) \
+    typedef name##_ptr name_t##_ptr;
+#define M_LIST_DUAL_PUSH_EX_OPL(name, type_t) M_LIST_OPLIST(name, M_GLOBAL_OPLIST_OR_DEF(type_t)())
+
+#define M_TUPLE_EX_DEF(name, name_t, ...)      \
+    M_TUPLE_DEF2_AS(name, name_t, __VA_ARGS__) \
+    typedef name##_ptr name_t##_ptr;
+#define M_GLOBAL_OPLIST_OR_DEF_CALL(type_t) M_GLOBAL_OPLIST_OR_DEF(type_t)()
+#define M_TUPLE_EX_OPL(name, ...) \
+    M_TUPLE_OPLIST(name, M_MAP_C(M_GLOBAL_OPLIST_OR_DEF_CALL, __VA_ARGS__))
+
 // Based on M_EACH() but also dereferences item pointer for convenience;
 // container and container_t are swapped to resemble variable declaration.
 #define each(item_t, item, container_t, container) \

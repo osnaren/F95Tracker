@@ -7,21 +7,19 @@
 
 typedef int32_t LabelId;
 
-M_TUPLE_DEF2_AS(
+M_TUPLE_EX_DEF(
     label,
     Label,
     (id, LabelId),
     (name, m_string_t),
-    (color, ImColor, M_POD_OPLIST),
+    (color, ImColor),
     (position, int32_t))
-#define M_OPL_Label() M_A1_OPLIST
-typedef label_ptr Label_ptr;
+#define M_OPL_Label() M_TUPLE_EX_OPL(label, LabelId, m_string_t, ImColor, int32_t)
 
-M_LIST_DUAL_PUSH_DEF_AS(label_list, LabelList, LabelListIt, Label)
-#define M_OPL_LabelList() M_LIST_OPLIST(label_list)
-typedef label_list_ptr LabelList_ptr;
+M_LIST_DUAL_PUSH_EX_DEF(label_list, LabelList, Label)
+#define M_OPL_LabelList() M_LIST_DUAL_PUSH_EX_OPL(label_list, Label)
 
 void label_list_update_positions(LabelList_ptr labels);
 
-M_LIST_DUAL_PUSH_DEF_AS(label_ptr_list, LabelPtrList, LabelPtrListIt, Label_ptr, M_PTR_OPLIST)
-#define M_OPL_LabelPtrList() M_LIST_OPLIST(label_ptr_list)
+M_LIST_DUAL_PUSH_EX_DEF(label_ptr_list, LabelPtrList, Label_ptr, M_PTR_OPLIST)
+#define M_OPL_LabelPtrList() M_LIST_DUAL_PUSH_EX_OPL(label_ptr_list, M_PTR_OPLIST)

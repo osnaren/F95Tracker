@@ -12,7 +12,7 @@
     _($, Misc, 3)
 SMARTENUM_DECLARE(_GameCategory, GameCategory)
 
-M_TUPLE_DEF2_AS(
+M_TUPLE_EX_DEF(
     game_review,
     GameReview,
     (user, m_string_t),
@@ -20,11 +20,11 @@ M_TUPLE_DEF2_AS(
     (message, m_string_t),
     (likes, uint32_t),
     (timestamp, Timestamp))
-#define M_OPL_GameReview() M_A1_OPLIST
-typedef game_review_ptr GameReview_ptr;
+#define M_OPL_GameReview() \
+    M_TUPLE_EX_OPL(game_review, m_string_t, uint8_t, m_string_t, uint32_t, Timestamp)
 
-M_LIST_DUAL_PUSH_DEF_AS(game_review_list, GameReviewList, GameReviewListIt, GameReview)
-#define M_OPL_GameReviewList() M_LIST_OPLIST(game_review_list)
+M_LIST_DUAL_PUSH_EX_DEF(game_review_list, GameReviewList, GameReview)
+#define M_OPL_GameReviewList() M_LIST_DUAL_PUSH_EX_OPL(game_review_list, GameReview)
 
 #define _GameStatus(_, $) \
     _($, Normal, 1)       \

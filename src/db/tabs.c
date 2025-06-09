@@ -131,7 +131,7 @@ Tab_ptr db_do_create_tab(Db* db, TabList_ptr tabs) {
 void db_do_delete_tab(Db* db, Tab_ptr tab, TabList_ptr tabs) {
     TabId id = tab->id;
     bool removed = false;
-    TabListIt it;
+    TabList_it it;
     for(tab_list_it(it, tabs); !tab_list_end_p(it); tab_list_next(it)) {
         if(*tab_list_cref(it) == tab) {
             tab_list_remove(tabs, it);

@@ -20,8 +20,8 @@ size_t GameId_hash(GameId n);
         OOR_SET(API_4(GameId_oor_set)), \
         HASH(GameId_hash))
 
-M_ARRAY_DEF_AS(game_id_array, GameIdArray, GameIdArrayIt, GameId)
-#define M_OPL_GameIdArray() M_ARRAY_OPLIST(game_id_array)
+M_ARRAY_EX_DEF(game_id_array, GameIdArray, GameId)
+#define M_OPL_GameIdArray() M_ARRAY_EX_OPL(game_id_array, GameId)
 
 #define GAME_IMAGE_URL_MISSING "missing"
 
@@ -72,15 +72,5 @@ typedef struct {
 Game* game_init(void);
 void game_free(Game* game);
 
-M_DICT_OA_DEF2_AS(
-    game_dict,
-    GameDict,
-    GameDictIt,
-    GameDictItref,
-    GameId,
-    M_OPL_GameId(),
-    Game*,
-    M_PTR_OPLIST)
-#define M_OPL_GameDict() M_DICT_OPLIST(game_dict)
-typedef game_dict_ptr GameDict_ptr;
-typedef game_dict_pair_ct GameDict_pair;
+M_DICT_OA_EX_DEF(game_dict, GameDict, GameId, M_OPL_GameId(), Game*, M_PTR_OPLIST)
+#define M_OPL_GameDict() M_DICT_OA_EX_OPL(game_dict, M_OPL_GameId(), M_PTR_OPLIST)

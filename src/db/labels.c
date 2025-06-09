@@ -116,7 +116,7 @@ Label_ptr db_do_create_label(Db* db, LabelList_ptr labels) {
 void db_do_delete_label(Db* db, Label_ptr label, LabelList_ptr labels) {
     LabelId id = label->id;
     bool removed = false;
-    LabelListIt it;
+    LabelList_it it;
     for(label_list_it(it, labels); !label_list_end_p(it); label_list_next(it)) {
         if(*label_list_cref(it) == label) {
             label_list_remove(labels, it);

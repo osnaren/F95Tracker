@@ -86,9 +86,11 @@ typedef struct {
         } delete;
     };
 } DbMessage;
+#define M_OPL_DbMessage() M_POD_OPLIST
 
 // TODO: check if 100 queue is really useful
-M_BUFFER_DEF_AS(db_message_queue, DbMessageQueue, DbMessage, 100, M_BUFFER_QUEUE, M_POD_OPLIST)
+M_BUFFER_EX_DEF(db_message_queue, DbMessageQueue, DbMessage, 100, M_BUFFER_QUEUE)
+#define M_OPL_DbMessageQueue() M_BUFFER_EX_OPL(db_message_queue, DbMessage)
 
 struct Db {
     Path* path;
