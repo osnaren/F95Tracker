@@ -1,4 +1,5 @@
 #include "window.h"
+
 #include "util.h"
 
 #include <globals.h>

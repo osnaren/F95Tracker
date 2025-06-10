@@ -1,4 +1,5 @@
 #include "labels.h"
+
 #include "db_i.h"
 
 DB_TABLE_DEFINE(_LABELS, labels, LabelsColumn)

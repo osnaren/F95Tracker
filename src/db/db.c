@@ -1,5 +1,7 @@
 #include "db.h"
+
 #include "db_i.h"
+
 #include "path/path.h"
 
 #include <globals.h>
