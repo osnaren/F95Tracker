@@ -49,6 +49,8 @@ Game* game_init(void) {
 
     m_string_list_init(game->previews_urls);
 
+    game_download_list_init(game->downloads);
+
     game_review_list_init(game->reviews);
 
     return game;
@@ -78,6 +80,8 @@ void game_free(Game* game) {
     m_string_clear(game->image_url);
 
     m_string_list_clear(game->previews_urls);
+
+    game_download_list_clear(game->downloads);
 
     game_review_list_clear(game->reviews);
 

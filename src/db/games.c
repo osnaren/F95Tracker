@@ -9,7 +9,6 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     UNUSED(db);
     size_t col = 0;
 
-    // FIXME: load missing fields
     game->id = sqlite3_column_int(stmt, col++);
 
     bool migrate_custom = sqlite3_column_type(stmt, col) == SQLITE_NULL;
@@ -121,8 +120,31 @@ static void db_parse_game(Db* db, sqlite3_stmt* stmt, Game* game) {
     }
     json_object_put(previews_urls_json);
 
-    // game->downloads = sqlite3_column_int(stmt, col++);
-    col++;
+    json_object* downloads_json = sqlite3_column_json(stmt, col++);
+    for(size_t i = 0; i < json_object_array_length(downloads_json); i++) {
+        json_object* download = json_object_array_get_idx(downloads_json, i);
+        GameDownload download_obj;
+        game_download_init(download_obj);
+        m_string_set(
+            download_obj->text,
+            json_object_get_string(json_object_array_get_idx(download, 0)));
+        json_object* download_links = json_object_array_get_idx(download, 1);
+        for(size_t i = 0; i < json_object_array_length(download_links); i++) {
+            json_object* download_link = json_object_array_get_idx(download_links, i);
+            GameDownloadLink download_link_obj;
+            game_download_link_init(download_link_obj);
+            m_string_set(
+                download_link_obj->label,
+                json_object_get_string(json_object_array_get_idx(download_link, 0)));
+            m_string_set(
+                download_link_obj->url,
+                json_object_get_string(json_object_array_get_idx(download_link, 1)));
+            game_download_link_list_push_front_move(download_obj->links, &download_link_obj);
+        }
+        game_download_list_push_front_move(game->downloads, &download_obj);
+    }
+    json_object_put(downloads_json);
+
     game->reviews_total = sqlite3_column_int(stmt, col++);
 
     json_object* reviews_json = sqlite3_column_json(stmt, col++);
@@ -217,7 +239,6 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
     res = sqlite3_bind_int(stmt, 2, game->id);
     db_assert(db, res, SQLITE_OK, "sqlite3_bind_int()");
 
-    // FIXME: save missing fields
     switch(column) {
     case GamesColumn_id:
         res = sqlite3_bind_int(stmt, 1, game->id);
@@ -352,7 +373,33 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
         json_object_put(previews_urls_json);
         break;
     case GamesColumn_downloads:
-        // res = sqlite3_bind_int(stmt, 1, game->downloads);
+        json_object* downloads_json =
+            json_object_new_array_ext(game_download_list_size(game->downloads));
+        for each(GameDownload_ptr, download, GameDownloadList, game->downloads) {
+            json_object* download_json = json_object_new_array_ext(2);
+            json_object_array_put_idx(
+                download_json,
+                0,
+                json_object_new_string(m_string_get_cstr(download->text)));
+            json_object* download_links_json =
+                json_object_new_array_ext(game_download_link_list_size(download->links));
+            for each(GameDownloadLink_ptr, download_link, GameDownloadLinkList, download->links) {
+                json_object* download_link_json = json_object_new_array_ext(2);
+                json_object_array_put_idx(
+                    download_link_json,
+                    0,
+                    json_object_new_string(m_string_get_cstr(download_link->label)));
+                json_object_array_put_idx(
+                    download_link_json,
+                    1,
+                    json_object_new_string(m_string_get_cstr(download_link->url)));
+                json_object_array_add(download_links_json, download_link_json);
+            }
+            json_object_array_put_idx(download_json, 1, download_links_json);
+            json_object_array_add(downloads_json, download_json);
+        }
+        res = sqlite3_bind_json(stmt, 1, downloads_json);
+        json_object_put(downloads_json);
         break;
     case GamesColumn_reviews_total:
         res = sqlite3_bind_int(stmt, 1, game->reviews_total);

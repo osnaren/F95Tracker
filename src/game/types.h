@@ -12,6 +12,19 @@
     _($, Misc, 3)
 SMARTENUM_DECLARE(_GameCategory, GameCategory)
 
+M_TUPLE_EX_DEF(game_download_link, GameDownloadLink, (label, m_string_t), (url, m_string_t))
+#define M_OPL_GameDownloadLink() M_TUPLE_EX_OPL(game_download_link, m_string_t, m_string_t)
+
+M_LIST_DUAL_PUSH_EX_DEF(game_download_link_list, GameDownloadLinkList, GameDownloadLink)
+#define M_OPL_GameDownloadLinkList() \
+    M_LIST_DUAL_PUSH_EX_OPL(game_download_link_list, GameDownloadLink)
+
+M_TUPLE_EX_DEF(game_download, GameDownload, (text, m_string_t), (links, GameDownloadLinkList))
+#define M_OPL_GameDownload() M_TUPLE_EX_OPL(game_download, m_string_t, GameDownloadLinkList)
+
+M_LIST_DUAL_PUSH_EX_DEF(game_download_list, GameDownloadList, GameDownload)
+#define M_OPL_GameDownloadList() M_LIST_DUAL_PUSH_EX_OPL(game_download_list, GameDownload)
+
 M_TUPLE_EX_DEF(
     game_review,
     GameReview,

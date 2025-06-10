@@ -568,15 +568,6 @@ class TimelineEvent:
 
 
 @dataclasses.dataclass(slots=True)
-class Review:
-    user: str
-    score: int
-    message: str
-    likes: int
-    timestamp: int
-
-
-@dataclasses.dataclass(slots=True)
 class Label:
     @property
     def short_name(self):

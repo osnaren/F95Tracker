@@ -25,7 +25,6 @@ M_ARRAY_EX_DEF(game_id_array, GameIdArray, GameId)
 
 #define GAME_IMAGE_URL_MISSING "missing"
 
-// FIXME: implement missing fields
 typedef struct {
     GameId id;
     bool custom;
@@ -58,7 +57,7 @@ typedef struct {
     m_string_t notes;
     m_string_t image_url;
     MStringList previews_urls;
-    // tuple[tuple[str, list[tuple[str, str]]]] downloads;
+    GameDownloadList downloads;
     uint32_t reviews_total;
     GameReviewList reviews;
 
