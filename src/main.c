@@ -7,17 +7,21 @@ Os os = Os_Linux;
 #elif OS == OS_MACOS
 Os os = Os_MacOS;
 #endif
+BrowserList browsers;
 Db* db;
-Gui* gui;
-TabList tabs;
-LabelList labels;
-Settings* settings;
 GameDict games;
+Gui* gui;
+Settings* settings;
+LabelList labels;
+TabList tabs;
 
 int32_t main(int32_t argc, char** argv) {
     UNUSED(argc);
     UNUSED(argv);
     int32_t ret = 0;
+
+    browser_list_init(browsers);
+    browser_discover_installed(browsers);
 
     db = db_init();
     if(db == NULL) {
@@ -63,6 +67,8 @@ exit_gui:
 
     tab_list_clear(tabs);
 exit_db:
+
+    browser_list_clear(browsers);
 
     return ret;
 }

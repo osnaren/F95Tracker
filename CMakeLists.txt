@@ -3,7 +3,7 @@ project(F95Checker VERSION 12.0.0)
 
 include(CMakeDependentOption)
 option(F95CHECKER_VENDORED_CURL                    "Statically build and link cURL, will not require cURL on target system to run"         ON)
-cmake_dependent_option(F95CHECKER_VENDORED_WOLFSSL "Statically build and link wolfSSL, will not require SSL on target system to run"       ON  F95CHECKER_VENDORED_CURL OFF)
+option(F95CHECKER_VENDORED_WOLFSSL                 "Statically build and link wolfSSL, will not require wolfSSL on target system to run"   ON)
 option(F95CHECKER_VENDORED_SDL3                    "Statically build and link SDL3, will not require SDL3 on target system to run"         ON)
 option(F95CHECKER_VENDORED_SQLITE3                 "Statically build and link SQLite3, will not require SQLite3 on target system to run"   ON)
 option(F95CHECKER_PYTHON_VENV                      "Use a dedicated python venv instead of system python, requirements are auto-installed" ON)
@@ -27,8 +27,9 @@ set(CWALK_DIR "${VENDOR_DIR}/cwalk")
 set(IMGUI_DIR "${VENDOR_DIR}/imgui")
 set(DCIMGUI_DIR "${LIB_DIR}/dcimgui")
 set(JSONC_DIR "${VENDOR_DIR}/json-c")
-set(WOLFSSL_DIR "${VENDOR_DIR}/wolfssl")
 set(SQLITE3_DIR "${VENDOR_DIR}/sqlite3")
+set(WOLFSSL_DIR "${VENDOR_DIR}/wolfssl")
+set(WOLFSSL_CFG "${VENDOR_DIR}/wolfssl_config")
 set(DEARBINDINGS_DIR "${VENDOR_DIR}/dear_bindings")
 
 # Export compilation DB
@@ -140,9 +141,16 @@ target_link_libraries(F95Checker PRIVATE json-c)
 
 # wolfSSL
 if(F95CHECKER_VENDORED_WOLFSSL)
-    set(WOLFSSL_CURL ON)
+    include_directories("${WOLFSSL_CFG}")
+    if(F95CHECKER_VENDORED_CURL)
+        set(WOLFSSL_CURL ON)
+    endif()
     add_subdirectory("${WOLFSSL_DIR}" EXCLUDE_FROM_ALL)
     target_compile_options(wolfssl PRIVATE -Wno-stringop-overflow)
+    target_link_libraries(F95Checker PRIVATE wolfssl)
+else()
+    find_package(WolfSSL REQUIRED)
+    target_link_libraries(F95Checker PRIVATE wolfssl)
 endif()
 
 # cURL
