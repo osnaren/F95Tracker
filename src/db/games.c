@@ -303,7 +303,7 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
     case GamesColumn_executables:
         json_object* executables_json =
             json_object_new_array_ext(m_string_list_size(game->executables));
-        for each(m_string_ptr, executable, MStringList, game->executables) {
+        for each(m_string_ptr, executable, m_string_list_t, game->executables) {
             json_object_array_add(
                 executables_json,
                 json_object_new_string(m_string_get_cstr(executable)));
@@ -329,7 +329,7 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
     case GamesColumn_unknown_tags:
         json_object* unknown_tags_json =
             json_object_new_array_ext(m_string_list_size(game->unknown_tags));
-        for each(m_string_ptr, unknown_tag, MStringList, game->unknown_tags) {
+        for each(m_string_ptr, unknown_tag, m_string_list_t, game->unknown_tags) {
             json_object_array_add(
                 unknown_tags_json,
                 json_object_new_string(m_string_get_cstr(unknown_tag)));
@@ -364,7 +364,7 @@ void db_do_save_game(Db* db, Game* game, GamesColumn column) {
     case GamesColumn_previews_urls:
         json_object* previews_urls_json =
             json_object_new_array_ext(m_string_list_size(game->previews_urls));
-        for each(m_string_ptr, preview_url, MStringList, game->previews_urls) {
+        for each(m_string_ptr, preview_url, m_string_list_t, game->previews_urls) {
             json_object_array_add(
                 previews_urls_json,
                 json_object_new_string(m_string_get_cstr(preview_url)));

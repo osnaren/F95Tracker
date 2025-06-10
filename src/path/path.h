@@ -26,8 +26,11 @@ bool path_is_file(Path* path);
 bool path_is_dir(Path* path);
 
 bool path_mkdir(Path* path, bool recursive);
-bool path_read(Path* path, m_bstring_t* bytes);
-bool path_write(Path* path, m_bstring_t* bytes);
-bool path_write_raw(Path* path, const void* bytes, size_t count);
+bool path_read_lines(Path* path, m_string_list_ptr lines);
+bool path_read_text(Path* path, m_string_ptr string);
+bool path_read_bytes(Path* path, m_bstring_ptr bytes);
+bool path_write_raw(Path* path, const void* data, size_t size);
+bool path_write_text(Path* path, m_string_ptr string);
+bool path_write_bytes(Path* path, m_bstring_ptr bytes);
 
 void path_free(Path* path);

@@ -100,7 +100,7 @@ static void db_do_backup(Db* db) {
 
     m_bstring_t bytes;
     m_bstring_init(bytes);
-    if(path_read(db->path, &bytes) && path_write(backup, &bytes)) {
+    if(path_read_bytes(db->path, bytes) && path_write_bytes(backup, bytes)) {
         printf("Saved DB backup: %s\n", path_cstr(backup));
     } else {
         custom_perror(path_cstr(backup), "DB backup failed");

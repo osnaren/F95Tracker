@@ -169,8 +169,10 @@ typedef long double flt128_t;
             M_GET_IT_NEXT oplist (iterator))
 // clang-format on
 
-M_LIST_DUAL_PUSH_DEF_AS(m_string_list, MStringList, MStringListIt, m_string_t)
-#define M_OPL_MStringList() M_LIST_OPLIST(m_string_list)
+M_LIST_DUAL_PUSH_EX_DEF(m_string_list, m_string_list_t, m_string_t)
+#define M_OPL_m_string_list_t() M_LIST_DUAL_PUSH_EX_OPL(m_string_list, m_string_t)
+
+typedef struct m_bstring_s* m_bstring_ptr;
 
 typedef struct m_eflag_s {
     m_mutex_t mutex;

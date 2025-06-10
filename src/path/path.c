@@ -145,35 +145,60 @@ bool path_mkdir(Path* path, bool recursive) {
     return ret;
 }
 
-bool path_read(Path* path, m_bstring_t* bytes) {
-    struct stat st;
-    int32_t res = stat(path_cstr(path), &st);
-    if(res != 0) {
-        assert(res == -1);
-        perror(path_cstr(path));
-        return NULL;
-    }
-    if(S_ISDIR(st.st_mode)) {
-        return NULL;
-    }
-
+bool path_read_lines(Path* path, m_string_list_ptr lines) {
     FILE* file = fopen(path_cstr(path), "r");
     if(file == NULL) {
         perror(path_cstr(path));
-        return NULL;
+        return false;
     }
 
-    bool read = m_bstring_fread(*bytes, file, st.st_size);
+    m_string_t line;
+    m_string_init(line);
+    while(m_string_fgets(line, file, M_STRING_READ_PURE_LINE)) {
+        m_string_list_push_front(lines, line);
+    }
+    m_string_clear(line);
+
+    fclose(file);
+
+    return true;
+}
+
+bool path_read_text(Path* path, m_string_ptr string) {
+    FILE* file = fopen(path_cstr(path), "r");
+    if(file == NULL) {
+        perror(path_cstr(path));
+        return false;
+    }
+
+    bool read = m_string_fgets(string, file, M_STRING_READ_FILE);
     fclose(file);
 
     return read;
 }
 
-bool path_write(Path* path, m_bstring_t* bytes) {
-    return path_write_raw(
-        path,
-        m_bstring_view(*bytes, 0, m_bstring_size(*bytes)),
-        m_bstring_size(*bytes));
+bool path_read_bytes(Path* path, m_bstring_ptr bytes) {
+    struct stat st;
+    int32_t res = stat(path_cstr(path), &st);
+    if(res != 0) {
+        assert(res == -1);
+        perror(path_cstr(path));
+        return false;
+    }
+    if(S_ISDIR(st.st_mode)) {
+        return false;
+    }
+
+    FILE* file = fopen(path_cstr(path), "r");
+    if(file == NULL) {
+        perror(path_cstr(path));
+        return false;
+    }
+
+    bool read = m_bstring_fread(bytes, file, st.st_size);
+    fclose(file);
+
+    return read;
 }
 
 bool path_write_raw(Path* path, const void* data, size_t size) {
@@ -187,6 +212,26 @@ bool path_write_raw(Path* path, const void* data, size_t size) {
     fclose(file);
 
     return wrote == size;
+}
+
+bool path_write_text(Path* path, m_string_ptr string) {
+    FILE* file = fopen(path_cstr(path), "w");
+    if(file == NULL) {
+        perror(path_cstr(path));
+        return false;
+    }
+
+    bool wrote = m_string_fputs(file, string);
+    fclose(file);
+
+    return wrote;
+}
+
+bool path_write_bytes(Path* path, m_bstring_ptr bytes) {
+    return path_write_raw(
+        path,
+        m_bstring_view(bytes, 0, m_bstring_size(bytes)),
+        m_bstring_size(bytes));
 }
 
 void path_free(Path* path) {
