@@ -19,6 +19,7 @@ set(RESOURCES_DIR "${F95CHECKER_DIR}/resources")
 set(VENV_DIR "${CMAKE_CURRENT_BINARY_DIR}/venv")
 set(GLAD_DIR "${LIB_DIR}/glad")
 set(BC7E_DIR "${LIB_DIR}/bc7e")
+set(SHLEX_DIR "${LIB_DIR}/shlex")
 set(GLAD_GEN "${VENDOR_DIR}/glad")
 set(BC7E_GEN "${VENDOR_DIR}/bc7e")
 set(SDL3_DIR "${VENDOR_DIR}/sdl3")
@@ -29,6 +30,7 @@ set(DCIMGUI_DIR "${LIB_DIR}/dcimgui")
 set(JSONC_DIR "${VENDOR_DIR}/json-c")
 set(SQLITE3_DIR "${VENDOR_DIR}/sqlite3")
 set(WOLFSSL_DIR "${VENDOR_DIR}/wolfssl")
+set(SHLEXCPP_DIR "${VENDOR_DIR}/shlex_cpp")
 set(WOLFSSL_CFG "${VENDOR_DIR}/wolfssl_config")
 set(DEARBINDINGS_DIR "${VENDOR_DIR}/dear_bindings")
 
@@ -187,6 +189,10 @@ if(BC7E_AVAILABLE)
     target_link_libraries(F95Checker PRIVATE bc7e)
     target_compile_definitions(F95Checker PRIVATE BC7E_AVAILABLE=1)
 endif()
+
+# shlex
+add_subdirectory("${SHLEX_DIR}")
+target_link_libraries(F95Checker PRIVATE shlex)
 
 # Build as (almost) static executable
 # Adding -static prevents loading OpenGL (or any other) shared libraries at runtime

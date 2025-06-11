@@ -2,6 +2,7 @@
 
 #include "path/path.h"
 
+#include <shlex/shlex.h>
 #include <wolfssl/options.h>
 #include <wolfssl/wolfcrypt/hash.h>
 
@@ -37,10 +38,20 @@ static void browser_parse_desktop_file(BrowserList_ptr browsers, Path* desktop_f
                 m_string_set(browser->name, line);
             }
             if(m_string_start_with_str_p(line, "Exec=")) {
-                if(!is_desktop_entry && !is_private_action) continue;
+                m_string_list_ptr args = NULL;
+                if(is_desktop_entry && m_string_list_empty_p(browser->args_regular)) {
+                    args = browser->args_regular;
+                } else if(is_private_action && m_string_list_empty_p(browser->args_private)) {
+                    args = browser->args_private;
+                }
+                if(args == NULL) continue;
                 m_string_right(line, strlen("Exec="));
-                // FIXME: parse and save the exec string using shlex equivalent
-                // printf("%s\n", m_string_get_cstr(line));
+                shlex_split(m_string_get_cstr(line), args);
+                for each(m_string_ptr, arg, m_string_list_t, args) {
+                    if(m_string_start_with_str_p(arg, "%")) {
+                        m_string_list_remove(args, arg_it);
+                    }
+                }
             }
         }
 
@@ -147,7 +158,7 @@ static void browser_discover_installed_xdg(BrowserList_ptr browsers, const char*
 
 void browser_discover_installed(BrowserList_ptr browsers) {
 #if OS == OS_WINDOWS
-#error Not implemented
+#error Not implemented // FIXME: browsers on windows
 #elif OS == OS_LINUX
 
     m_string_t xdg_data_dirs;
@@ -177,6 +188,6 @@ void browser_discover_installed(BrowserList_ptr browsers) {
     m_string_clear(xdg_data_dirs);
 
 #elif OS == OS_MACOS
-#error Not implemented
+#error Not implemented // FIXME: browsers on macos
 #endif
 }
