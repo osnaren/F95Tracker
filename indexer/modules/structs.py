@@ -585,66 +585,6 @@ class Tab:
             return f"{icons.heart_box} Default"
 
 
-@dataclasses.dataclass(slots=True)
-class Browser:
-    name: str
-    hash: int = None
-    args: list[str] = None
-    hashed_name: str = None
-    integrated: bool = None
-    custom: bool = None
-    private_arg: list = None
-    index : int = None
-    instances: typing.ClassVar = {}
-    avail_list: typing.ClassVar = []
-
-    def __post_init__(self):
-        if self.hash is None:
-            self.hash = self.make_hash(self.name)
-        self.hashed_name = f"{self.name}###{self.hash}"
-        self.integrated = self.hash == 0
-        self.custom = self.hash == -1
-        private_args = {
-            "Opera":   "-private",
-            "Chrom":   "-incognito",
-            "Brave":   "-incognito",
-            "Edge":    "-inprivate",
-            "fox":     "-private-window"
-        }
-        self.private_arg = []
-        for search, arg in private_args.items():
-            if search in self.name:
-                self.private_arg.append(arg)
-                break
-
-    @classmethod
-    def make_hash(cls, name: str):
-        return int(hashlib.md5(name.encode()).hexdigest()[-12:], 16)
-
-    @classmethod
-    def add(cls, *args, **kwargs):
-        if args and isinstance(obj := args[0], cls):
-            self = obj
-        else:
-            self = cls(*args, **kwargs)
-        if self.hashed_name in cls.instances:
-            return
-        cls.instances[self.hashed_name] = self
-        cls.avail_list.append(self.hashed_name)
-        for browser in cls.instances.values():
-            browser.index = cls.avail_list.index(browser.hashed_name)
-
-    @classmethod
-    def get(cls, hash):
-        for browser in cls.instances.values():
-            if browser.hash == hash or browser.hashed_name == hash:
-                return browser
-        return cls.get(0)
-
-Browser.add("Integrated", 0)
-Browser.add("Custom", -1)
-
-
 Type = IntEnumHack("Type", [
     ("ADRIFT",     2),
     ("Flash",      4),

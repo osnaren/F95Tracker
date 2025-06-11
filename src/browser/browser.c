@@ -14,6 +14,7 @@ static BrowserHash browser_name_hash(const char* name) {
     for(size_t i = 0; i < 6; i++) {
         hash = (hash << 8) | md5[10 + i];
     }
+    assert(hash != BrowserReservedHashIntegrated && hash != BrowserReservedHashCustom);
     return hash;
 }
 
@@ -157,6 +158,19 @@ static void browser_discover_installed_xdg(BrowserList_ptr browsers, const char*
 }
 
 void browser_discover_installed(BrowserList_ptr browsers) {
+    Browser browser;
+    browser_init(browser);
+
+    m_string_set(browser->name, "Integrated");
+    browser->hash = BrowserReservedHashIntegrated;
+    browser_list_push_front(browsers, browser);
+
+    m_string_set(browser->name, "Custom");
+    browser->hash = BrowserReservedHashCustom;
+    browser_list_push_front(browsers, browser);
+
+    browser_clear(browser);
+
 #if OS == OS_WINDOWS
 #error Not implemented // FIXME: browsers on windows
 #elif OS == OS_LINUX

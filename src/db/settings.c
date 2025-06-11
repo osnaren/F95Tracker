@@ -10,7 +10,6 @@ static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
     UNUSED(db);
     size_t col = 1; // Skip _ column
 
-    // FIXME: load missing fields
     settings->background_on_close = sqlite3_column_int(stmt, col++);
     settings->bg_notifs_interval = sqlite3_column_int(stmt, col++);
     settings->bg_refresh_interval = sqlite3_column_int(stmt, col++);
@@ -18,8 +17,17 @@ static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
     m_string_set(settings->browser_custom_executable, sqlite3_column_text(stmt, col++));
     settings->browser_html = sqlite3_column_int(stmt, col++);
     settings->browser_private = sqlite3_column_int(stmt, col++);
-    // settings->browser = sqlite3_column_int(stmt, column_i++);
+
+    settings->browser = *browser_list_back(browsers);
+    BrowserHash browser_hash = sqlite3_column_int64(stmt, col);
+    for each(Browser_ptr, browser, BrowserList, browsers) {
+        if(browser->hash == browser_hash) {
+            settings->browser = browser;
+            break;
+        }
+    }
     col++;
+
     settings->cell_image_ratio = sqlite3_column_double(stmt, col++);
     settings->check_notifs = sqlite3_column_int(stmt, col++);
     settings->compact_timeline = sqlite3_column_int(stmt, col++);
@@ -211,7 +219,6 @@ void db_do_save_setting(Db* db, Settings* settings, SettingsColumn column) {
     res = sqlite3_prepare_v2(db->conn, m_string_get_cstr(sql), -1, &stmt, NULL);
     db_assert(db, res, SQLITE_OK, "sqlite3_prepare_v2()");
 
-    // FIXME: save missing fields
     switch(column) {
     case SettingsColumn__:
         res = sqlite3_bind_int(stmt, 1, 0);
@@ -238,7 +245,7 @@ void db_do_save_setting(Db* db, Settings* settings, SettingsColumn column) {
         res = sqlite3_bind_int(stmt, 1, settings->browser_private);
         break;
     case SettingsColumn_browser:
-        // res = sqlite3_bind_int(stmt, 1, settings->browser);
+        res = sqlite3_bind_int64(stmt, 1, settings->browser->hash);
         break;
     case SettingsColumn_cell_image_ratio:
         res = sqlite3_bind_int(stmt, 1, settings->cell_image_ratio);

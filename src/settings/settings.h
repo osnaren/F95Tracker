@@ -2,6 +2,7 @@
 
 #include "types.h"
 
+#include "browser/browser.h"
 #include "game/game.h"
 #include "path/path.h"
 #include "types/datetime.h"
@@ -18,12 +19,11 @@
 #define SETTINGS_DFLT_STYLE_TEXT     "#ffffff"
 #define SETTINGS_DFLT_STYLE_TEXT_DIM "#808080"
 
-// FIXME: implement missing fields
 typedef struct {
     bool background_on_close;
     int32_t bg_notifs_interval;
     int32_t bg_refresh_interval;
-    // Browser.get browser;
+    Browser_ptr browser;
     m_string_t browser_custom_arguments;
     m_string_t browser_custom_executable;
     bool browser_html;

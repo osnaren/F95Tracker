@@ -4,6 +4,11 @@
 
 typedef int64_t BrowserHash;
 
+typedef enum {
+    BrowserReservedHashIntegrated = (BrowserHash)0,
+    BrowserReservedHashCustom = (BrowserHash)-1,
+} BrowserReservedHash;
+
 M_TUPLE_EX_DEF(
     browser,
     Browser,
