@@ -90,18 +90,16 @@ void gui_window_draw(Gui* gui) {
         Tab_ptr tab = db_create_tab(db, tabs);
         UNUSED(tab);
     }
-    Tab_ptr delete_tab = NULL;
     for each(Tab_ptr, tab, TabList, tabs) {
         ImGui_PushIDInt(tab->id);
-        if(ImGui_Button(mdi_trash_can_outline)) {
-            delete_tab = tab;
-        }
+        bool do_delete = ImGui_Button(mdi_trash_can_outline);
         ImGui_SameLine();
         ImGui_Text("%d %d %s", tab->position, tab->id, m_string_get_cstr(tab->name));
         ImGui_PopID();
-    }
-    if(delete_tab != NULL) {
-        db_delete_tab(db, delete_tab, tabs);
+        if(do_delete) {
+            tab_list_next(tab_it);
+            db_delete_tab(db, tab, tabs);
+        }
     }
     ImGui_EndGroup();
 
@@ -114,18 +112,16 @@ void gui_window_draw(Gui* gui) {
         Label_ptr label = db_create_label(db, labels);
         UNUSED(label);
     }
-    Label_ptr delete_label = NULL;
     for each(Label_ptr, label, LabelList, labels) {
         ImGui_PushIDInt(label->id);
-        if(ImGui_Button(mdi_trash_can_outline)) {
-            delete_label = label;
-        }
+        bool do_delete = ImGui_Button(mdi_trash_can_outline);
         ImGui_SameLine();
         ImGui_Text("%d %d %s", label->position, label->id, m_string_get_cstr(label->name));
         ImGui_PopID();
-    }
-    if(delete_label != NULL) {
-        db_delete_label(db, delete_label, labels);
+        if(do_delete) {
+            label_list_next(label_it);
+            db_delete_label(db, label, labels);
+        }
     }
     ImGui_EndGroup();
 

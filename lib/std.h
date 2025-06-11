@@ -143,7 +143,7 @@ typedef long double flt128_t;
 /* Internal for each */
 #define eachi_oplist(item_t, item, container, oplist)                         \
   M_IF_METHOD(IT_REF, oplist)(eachi, eachi_const)                             \
-  (item_t, item, container, oplist, M_C(local_iterator_, __LINE__),           \
+  (item_t, item, container, oplist, M_C(item, _it),                           \
    M_C(local_cont_, __LINE__), M_C(local_ptr_, __LINE__))
 
 /* Internal for each with M_GET_IT_REF operator */
@@ -155,7 +155,8 @@ typedef long double flt128_t;
         for(M_GET_IT_FIRST oplist (iterator, container) ;                     \
             !M_GET_IT_END_P oplist (iterator)                                 \
               && (ptr = M_GET_IT_REF oplist (iterator), item = *ptr, true) ;  \
-            M_GET_IT_NEXT oplist (iterator))
+            !M_GET_IT_END_P oplist (iterator)                                 \
+              && (M_GET_IT_NEXT oplist (iterator), true))
 
 /* Internal for each with M_GET_IT_CREF operator */
 #define eachi_const(item_t,item,container,oplist, iterator, cont, ptr)        \
@@ -166,10 +167,11 @@ typedef long double flt128_t;
         for(M_GET_IT_FIRST oplist (iterator, container) ;                     \
             !M_GET_IT_END_P oplist (iterator)                                 \
               && (ptr = M_GET_IT_CREF oplist (iterator), item = *ptr, true) ; \
-            M_GET_IT_NEXT oplist (iterator))
+            !M_GET_IT_END_P oplist (iterator)                                 \
+              && (M_GET_IT_NEXT oplist (iterator), true))
 // clang-format on
 
-M_LIST_DUAL_PUSH_EX_DEF(m_string_list, m_string_list_t, m_string_t)
+M_LIST_DUAL_PUSH_DEF(m_string_list, m_string_t)
 #define M_OPL_m_string_list_t() M_LIST_DUAL_PUSH_EX_OPL(m_string_list, m_string_t)
 
 typedef struct m_bstring_s* m_bstring_ptr;
