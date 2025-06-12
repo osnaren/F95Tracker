@@ -155,7 +155,7 @@ bool path_read_lines(Path* path, m_string_list_ptr lines) {
     m_string_t line;
     m_string_init(line);
     while(m_string_fgets(line, file, M_STRING_READ_PURE_LINE)) {
-        m_string_list_push_front(lines, line);
+        m_string_list_push_back(lines, line);
     }
     m_string_clear(line);
 

@@ -41,8 +41,10 @@ void db_do_load_tabs(Db* db, TabList_ptr tabs) {
     assert(sqlite3_column_count(stmt) == tabs_table.columns_count);
     while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
         db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
-        Tab_ptr tab = *tab_list_push_front_new(tabs);
+        Tab tab;
+        tab_init(tab);
         db_parse_tab(db, stmt, tab);
+        tab_list_push_back_move(tabs, &tab);
     }
 
     res = sqlite3_finalize(stmt);
@@ -117,8 +119,11 @@ Tab_ptr db_do_create_tab(Db* db, TabList_ptr tabs) {
     res = sqlite3_step(stmt);
     db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
 
-    Tab_ptr tab = *tab_list_push_front_new(tabs);
+    Tab tab;
+    tab_init(tab);
     db_parse_tab(db, stmt, tab);
+    tab_list_push_back_move(tabs, &tab);
+    Tab_ptr tab_ptr = *tab_list_back(tabs);
 
     res = sqlite3_finalize(stmt);
     db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
@@ -126,7 +131,7 @@ Tab_ptr db_do_create_tab(Db* db, TabList_ptr tabs) {
     m_string_clear(sql);
 
     tab_list_update_positions(tabs);
-    return tab;
+    return tab_ptr;
 }
 
 void db_do_delete_tab(Db* db, Tab_ptr tab, TabList_ptr tabs) {

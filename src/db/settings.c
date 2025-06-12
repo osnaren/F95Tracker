@@ -18,7 +18,7 @@ static void db_parse_settings(Db* db, sqlite3_stmt* stmt, Settings* settings) {
     settings->browser_html = sqlite3_column_int(stmt, col++);
     settings->browser_private = sqlite3_column_int(stmt, col++);
 
-    settings->browser = *browser_list_back(browsers);
+    settings->browser = *browser_list_front(browsers); // Integrated by default
     BrowserHash browser_hash = sqlite3_column_int64(stmt, col);
     for each(Browser_ptr, browser, BrowserList, browsers) {
         if(browser->hash == browser_hash) {

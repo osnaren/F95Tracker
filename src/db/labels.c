@@ -33,8 +33,10 @@ void db_do_load_labels(Db* db, LabelList_ptr labels) {
     assert(sqlite3_column_count(stmt) == labels_table.columns_count);
     while((res = sqlite3_step(stmt)) != SQLITE_DONE) {
         db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
-        Label_ptr label = *label_list_push_front_new(labels);
+        Label label;
+        label_init(label);
         db_parse_label(db, stmt, label);
+        label_list_push_back_move(labels, &label);
     }
 
     res = sqlite3_finalize(stmt);
@@ -102,8 +104,11 @@ Label_ptr db_do_create_label(Db* db, LabelList_ptr labels) {
     res = sqlite3_step(stmt);
     db_assert(db, res, SQLITE_ROW, "sqlite3_step()");
 
-    Label_ptr label = *label_list_push_front_new(labels);
+    Label label;
+    label_init(label);
     db_parse_label(db, stmt, label);
+    label_list_push_back_move(labels, &label);
+    Label_ptr label_ptr = *label_list_back(labels);
 
     res = sqlite3_finalize(stmt);
     db_assert(db, res, SQLITE_OK, "sqlite3_finalize()");
@@ -111,7 +116,7 @@ Label_ptr db_do_create_label(Db* db, LabelList_ptr labels) {
     m_string_clear(sql);
 
     label_list_update_positions(labels);
-    return label;
+    return label_ptr;
 }
 
 void db_do_delete_label(Db* db, Label_ptr label, LabelList_ptr labels) {

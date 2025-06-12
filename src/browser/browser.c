@@ -77,12 +77,12 @@ static void browser_parse_desktop_file(BrowserList_ptr browsers, Path* desktop_f
                        M_STRING_FAILURE) {
                         m_string_t private_arg;
                         m_string_init_set(private_arg, private_args[i].arg);
-                        m_string_list_push_front_move(browser->args_private, &private_arg);
+                        m_string_list_push_back_move(browser->args_private, &private_arg);
                         break;
                     }
                 }
             }
-            browser_list_push_front_move(browsers, &browser);
+            browser_list_push_back_move(browsers, &browser);
         } else {
             browser_clear(browser);
         }
@@ -134,7 +134,7 @@ static void browser_discover_installed_xdg(BrowserList_ptr browsers, const char*
                         break;
                     }
                     if(!is_duplicate) {
-                        m_string_list_push_front(apps, app);
+                        m_string_list_push_back(apps, app);
                     }
                 }
             }
@@ -163,11 +163,11 @@ void browser_discover_installed(BrowserList_ptr browsers) {
 
     m_string_set(browser->name, "Integrated");
     browser->hash = BrowserReservedHashIntegrated;
-    browser_list_push_front(browsers, browser);
+    browser_list_push_back(browsers, browser);
 
     m_string_set(browser->name, "Custom");
     browser->hash = BrowserReservedHashCustom;
-    browser_list_push_front(browsers, browser);
+    browser_list_push_back(browsers, browser);
 
     browser_clear(browser);
 
